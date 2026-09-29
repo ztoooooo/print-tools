@@ -12,6 +12,11 @@
 ![Element Plus](https://img.shields.io/badge/Element_Plus-2.9-409EFF?logo=element&logoColor=white)
 ![License](https://img.shields.io/badge/license-Internal-7C3AED)
 ![Offline](https://img.shields.io/badge/100%25-offline-22C55E)
+![Live Demo](https://img.shields.io/badge/在线演示-click%20me-000000?style=flat-square)
+
+### 👉 [点此立即在线使用](https://ztoooooo.github.io/print-tools/)
+
+**https://ztoooooo.github.io/print-tools/**
 
 </div>
 
