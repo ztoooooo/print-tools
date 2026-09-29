@@ -1,0 +1,27 @@
+sequenceDiagram
+    autonumber
+    actor U as 用户
+    participant LPn as LeftPanel
+    participant Parser as file-parser
+    participant FStore as files.ts
+    participant Layout as layout engine
+    participant Prev as PreviewCanvas
+
+    U->>LPn: 拖入 / 选择 N 个 PDF/JPG/PNG
+    LPn->>Parser: parse(file, tab)
+    Parser->>Parser: dedupKey 检查<br/>(name+size 比对 FStore[tab])
+    alt 新文件
+        Parser->>Parser: pdfjs.getDocument / Image.decode
+        loop 每页 PDF
+            Parser->>Parser: page.render(scale=2) → Canvas
+        end
+        Parser-->>FStore: ParsedPage[] (或 ParsedSlot)
+    else 重复文件
+        Parser-->>LPn: 跳过 + Toast 提示
+    end
+    FStore->>FStore: files[tab].push(...)
+    FStore->>Layout: 触发响应
+    Layout->>Layout: layout(tab, files, ui) → LayoutPage[]
+    Layout->>Prev: 传入 LayoutPage[]
+    Prev->>Prev: render(LayoutPage[])
+    Prev-->>U: 刷新 A4 预览

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>发票 · 票据打印</title>
+<link rel="stylesheet" href="common.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- 顶栏 48 -->
+  <header class="topbar">
+    <span class="brand-mark">印</span>
+    <span class="brand-name">票据打印</span>
+    <span class="brand-sub">本地 · 离线可用</span>
+    <span class="topbar-right">
+      <button class="btn btn-warning-outline" type="button">重置全部</button>
+    </span>
+  </header>
+
+  <!-- Tab 栏 44 -->
+  <nav class="tabbar">
+    <span class="tab active">发票</span>
+    <span class="tab">车票</span>
+    <span class="tab">证件</span>
+  </nav>
+
+  <div class="main">
+
+    <!-- 左侧面板 280 -->
+    <aside class="panel">
+
+      <!-- ① 文件：上传区 -->
+      <section class="panel-section">
+        <h2 class="section-title">文件</h2>
+        <div class="dropzone is-filled" tabindex="0" role="button" aria-label="添加发票文件">
+          <svg class="dz-icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 16V4"/><path d="m7 9 5-5 5 5"/>
+            <path d="M20 16.5V19a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2.5"/>
+          </svg>
+          <span class="dz-text">拖入或点击添加文件</span>
+          <span class="dz-hint">支持 PDF / JPG / PNG，PDF 自动拆页 · 已添加 3 张</span>
+        </div>
+      </section>
+
+      <!-- ② 文件列表 -->
+      <section class="panel-section">
+        <h2 class="section-title">文件列表<span class="title-link">清空</span></h2>
+        <div class="file-list">
+
+          <div class="file-item">
+            <span class="badge-num">01</span>
+            <div class="file-main">
+              <div class="file-name">增值税发票.pdf#1</div>
+              <div class="file-meta">PDF 第 1 页 · 未旋转</div>
+            </div>
+            <span class="item-actions">
+              <button class="mini-btn mini-rotate" type="button">旋转</button>
+              <button class="mini-btn mini-delete" type="button">删除</button>
+            </span>
+          </div>
+
+          <div class="file-item">
+            <span class="badge-num">02</span>
+            <div class="file-main">
+              <div class="file-name">增值税发票.pdf#2</div>
+              <div class="file-meta">PDF 第 2 页 · 未旋转</div>
+            </div>
+            <span class="item-actions">
+              <button class="mini-btn mini-rotate" type="button">旋转</button>
+              <button class="mini-btn mini-delete" type="button">删除</button>
+            </span>
+          </div>
+
+          <div class="file-item">
+            <span class="badge-num">03</span>
+            <div class="file-main">
+              <div class="file-name"><span class="fnt">住宿发票.jpg</span><span class="tag-rotated">已旋转 90°</span></div>
+              <div class="file-meta">JPG · 当前 90°</div>
+            </div>
+            <span class="item-actions">
+              <button class="mini-btn mini-rotate" type="button">旋转 90°</button>
+              <button class="mini-btn mini-delete" type="button">删除</button>
+            </span>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ③ 排版模式 -->
+      <section class="panel-section">
+        <h2 class="section-title">排版模式</h2>
+        <div class="mode-grid" role="radiogroup" aria-label="发票排版模式">
+
+          <div class="mode-card" role="radio" aria-checked="false" tabindex="0" title="一张发票一页纸，放在页面上方居中。">
+            <svg class="mode-svg" width="22" height="31" viewBox="0 0 22 31" aria-hidden="true">
+              <rect x="0.5" y="0.5" width="21" height="30" rx="1" fill="#fff" stroke="#D8D2C5"/>
+              <rect class="block" x="5" y="12" width="12" height="7" rx="1"/>
+            </svg>
+            <span class="mode-name">单张居中</span>
+          </div>
+
+          <div class="mode-card selected" role="radio" aria-checked="true" tabindex="0" title="同一张发票在一页纸上复制两份，上下各一张。">
+            <span class="check">✓</span>
+            <svg class="mode-svg" width="22" height="31" viewBox="0 0 22 31" aria-hidden="true">
+              <rect x="0.5" y="0.5" width="21" height="30" rx="1" fill="#fff" stroke="#D8D2C5"/>
+              <rect class="block" x="5" y="8" width="12" height="7" rx="1"/>
+              <rect class="block" x="5" y="17" width="12" height="7" rx="1"/>
+            </svg>
+            <span class="mode-name">双打（复制两份）</span>
+          </div>
+
+          <div class="mode-card" role="radio" aria-checked="false" tabindex="0" title="两张不同的发票上下拼在同一页纸上，省纸。">
+            <svg class="mode-svg" width="22" height="31" viewBox="0 0 22 31" aria-hidden="true">
+              <rect x="0.5" y="0.5" width="21" height="30" rx="1" fill="#fff" stroke="#D8D2C5"/>
+              <rect class="block" x="5" y="9" width="12" height="6.5" rx="1"/>
+              <rect class="block" x="5" y="15.5" width="12" height="6.5" rx="1"/>
+            </svg>
+            <span class="mode-name">上下合并两张</span>
+          </div>
+
+          <div class="mode-card" role="radio" aria-checked="false" tabindex="0" title="能放几张放几张，从上到下自动排，满了自动换页。">
+            <svg class="mode-svg" width="22" height="31" viewBox="0 0 22 31" aria-hidden="true">
+              <rect x="0.5" y="0.5" width="21" height="30" rx="1" fill="#fff" stroke="#D8D2C5"/>
+              <rect class="block" x="4" y="8" width="12" height="5" rx="1"/>
+              <rect class="block" x="5" y="14" width="12" height="5" rx="1"/>
+              <rect class="block" x="6" y="20" width="12" height="5" rx="1"/>
+            </svg>
+            <span class="mode-name">自动堆叠</span>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ④ 打印设置 -->
+      <section class="panel-section">
+        <h2 class="section-title">打印设置</h2>
+
+        <div class="setting-row">
+          <span class="sr-label">纸张方向</span>
+          <span class="sr-control segmented" role="group" aria-label="纸张方向">
+            <button class="seg-item selected" type="button">纵向</button>
+            <button class="seg-item" type="button">横向</button>
+          </span>
+        </div>
+
+        <div class="setting-row">
+          <span class="sr-label">色彩</span>
+          <span class="sr-control segmented" role="group" aria-label="色彩模式">
+            <button class="seg-item selected" type="button">彩色</button>
+            <button class="seg-item" type="button">黑白</button>
+          </span>
+        </div>
+
+        <div class="setting-row">
+          <span class="sr-label">份数</span>
+          <span class="sr-control stepper" aria-label="打印份数">
+            <button type="button" aria-label="减少份数">−</button>
+            <input class="copies-value" value="2" aria-label="份数">
+            <button type="button" aria-label="增加份数">+</button>
+          </span>
+        </div>
+      </section>
+
+    </aside>
+
+    <!-- 右侧桌面预览 -->
+    <section class="desk">
+      <div class="desk-inner">
+        <div class="a4-stack">
+          <div class="a4">
+            <div class="a4-content" style="display:flex;flex-direction:column;gap:18px;">
+
+              <!-- double：同一张发票上下两份 -->
+              <div class="ticket-block" style="height:200px;">
+                <div class="tb-lines">
+                  <div class="tb-line short"></div>
+                  <div class="tb-line mid"></div>
+                  <div class="tb-line"></div>
+                  <div class="tb-line thin"></div>
+                  <div class="tb-line mid"></div>
+                  <div class="tb-line thin"></div>
+                  <div class="tb-line short"></div>
+                </div>
+              </div>
+
+              <div class="ticket-block" style="height:200px;">
+                <div class="tb-lines">
+                  <div class="tb-line short"></div>
+                  <div class="tb-line mid"></div>
+                  <div class="tb-line"></div>
+                  <div class="tb-line thin"></div>
+                  <div class="tb-line mid"></div>
+                  <div class="tb-line thin"></div>
+                  <div class="tb-line short"></div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- 翻页工具条 -->
+        <div class="pager">
+          <button class="pager-icon is-disabled" type="button" aria-label="首页" disabled>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m11 17-5-5 5-5"/><path d="m18 17-5-5 5-5"/></svg>
+          </button>
+          <button class="pager-icon is-disabled" type="button" aria-label="上一页" disabled>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+          </button>
+          <span class="pager-page">第 1 / 3 页</span>
+          <button class="pager-icon" type="button" aria-label="下一页">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+          </button>
+          <button class="pager-icon" type="button" aria-label="末页">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m13 17 5-5-5-5"/><path d="m6 17 5-5-5-5"/></svg>
+          </button>
+          <span class="pager-divider"></span>
+          <span class="view-seg segmented">
+            <button class="seg-item selected" type="button">单页</button>
+            <button class="seg-item" type="button">连续</button>
+          </span>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- 底部操作栏 52 -->
+  <footer class="statusbar-wrap">
+    <button class="btn btn-seal" type="button">打印</button>
+    <button class="btn btn-outline-blue" type="button">另存 PDF</button>
+    <span class="statusbar">
+      <b>3</b> 张<span class="dot">·</span>A4 纵向<span class="dot">·</span>彩色<span class="dot">·</span><b>2</b> 份<span class="dot">·</span>共 <b>3</b> 页
+    </span>
+  </footer>
+
+</div>
+
+</body>
+</html>

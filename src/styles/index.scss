@@ -1,0 +1,277 @@
+// ============================================================
+// 全局样式 + 拟物纸张感 Token + Element Plus 主题覆盖 + 打印规则
+// 对应 visual-style-guide.md v1.1
+// ============================================================
+
+:root {
+  // desk §2.1
+  --desk-base: #e8e4db;
+  --desk-deep: #dad4c8;
+  --app-bg: #edeae2;
+  // paper §2.2
+  --paper-a4: #fdfdfb;
+  --paper-panel: #f7f5ef;
+  --paper-card: #fbfaf6;
+  --paper-raised: #ffffff;
+  --paper-hover: #f2efe7;
+  --paper-inset: #f0ede4;
+  // ink §2.3
+  --ink-strong: #26241f;
+  --ink-body: #42403a;
+  --ink-secondary: #6e6a5f;
+  --ink-placeholder: #a39e91;
+  --ink-disabled: #bdb8ab;
+  // brand §2.4
+  --brand-seal: #c0392b;
+  --brand-seal-deep: #a52f23;
+  --brand-seal-soft: #f6e7e3;
+  --ink-blue: #34506b;
+  --ink-blue-soft: #e8edf2;
+  // functional §2.5
+  --success: #4f8a4b;
+  --success-soft: #e7f0e4;
+  --warning: #b97c2a;
+  --warning-soft: #f6ecd8;
+  --danger: #c14b53;
+  --danger-deep: #a23b43;
+  --danger-soft: #f8e6e7;
+  // line §2.6
+  --line-strong: #d8d2c5;
+  --line-base: #e2ddd1;
+  --line-soft: #ece8de;
+  --line-focus: #c0392b;
+  // font §3.1 v1.1
+  --font-sans: 'Microsoft YaHei UI', 'Microsoft YaHei', 'PingFang SC',
+    'Segoe UI', 'Hiragino Sans GB', 'Source Han Sans SC', 'Noto Sans CJK SC',
+    system-ui, -apple-system, sans-serif;
+  --font-num: 'SF Mono', 'Cascadia Mono', 'Consolas', 'Roboto Mono',
+    'Microsoft YaHei UI', 'Microsoft YaHei', monospace;
+
+  // ======== Element Plus 主题映射 §7.1 ========
+  --el-color-primary: #c0392b;
+  --el-color-primary-light-3: #d16a5f;
+  --el-color-primary-light-5: #dd8e85;
+  --el-color-primary-light-7: #eab3ab;
+  --el-color-primary-light-8: #f6e7e3;
+  --el-color-primary-light-9: #faf1ee;
+  --el-color-primary-dark-2: #a52f23;
+  --el-color-success: #4f8a4b;
+  --el-color-success-light-9: #e7f0e4;
+  --el-color-warning: #b97c2a;
+  --el-color-warning-light-9: #f6ecd8;
+  --el-color-danger: #c14b53;
+  --el-color-danger-light-9: #f8e6e7;
+  --el-color-info: #34506b;
+  --el-color-info-light-9: #e8edf2;
+  --el-bg-color: #fbfaf6;
+  --el-bg-color-page: #edeae2;
+  --el-fill-color-blank: #ffffff;
+  --el-text-color-primary: #26241f;
+  --el-text-color-regular: #42403a;
+  --el-text-color-secondary: #6e6a5f;
+  --el-text-color-placeholder: #a39e91;
+  --el-border-color: #d8d2c5;
+  --el-border-color-light: #e2ddd1;
+  --el-border-color-lighter: #ece8de;
+  --el-border-radius-base: 6px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--app-bg);
+  color: var(--ink-body);
+}
+
+#app {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.5;
+  // §3.5 v1.1：雅黑用自带 hinting + ClearType
+  -webkit-font-smoothing: auto;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: auto;
+}
+
+// 数字统一等宽
+.num,
+.tabular {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+}
+
+// 大号展示数字 §3.2/§3.5
+.display-num {
+  font-size: 22px;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-rendering: geometricPrecision;
+  font-variant-numeric: tabular-nums;
+}
+
+// ======== 滚动条美化（暖灰） ========
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ink-placeholder);
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+// ============ 自定义按钮（权重：实心朱红 / 描边蓝 / 描边警告） ============
+
+.el-button.lp-btn-seal {
+  background: var(--brand-seal);
+  border-color: var(--brand-seal);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(60, 52, 38, 0.1);
+}
+.el-button.lp-btn-seal:hover,
+.el-button.lp-btn-seal:focus {
+  background: var(--brand-seal-deep);
+  border-color: var(--brand-seal-deep);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(192, 57, 43, 0.3);
+}
+.el-button.lp-btn-seal:active {
+  background: #8f281d;
+  border-color: #8f281d;
+  color: #fff;
+  transform: translateY(1px);
+}
+.el-button.lp-btn-seal.is-disabled,
+.el-button.lp-btn-seal.is-disabled:hover {
+  background: #e3d9ce;
+  border-color: #e3d9ce;
+  color: #f5f1ea;
+  box-shadow: none;
+}
+
+.el-button.lp-btn-outline-blue {
+  background: var(--paper-raised);
+  border-color: var(--ink-blue);
+  color: var(--ink-blue);
+  font-weight: 500;
+}
+.el-button.lp-btn-outline-blue:hover,
+.el-button.lp-btn-outline-blue:focus {
+  background: var(--ink-blue-soft);
+  border-color: var(--ink-blue);
+  color: var(--ink-blue);
+}
+.el-button.lp-btn-outline-blue:active {
+  background: #dde4ec;
+}
+.el-button.lp-btn-outline-blue.is-disabled,
+.el-button.lp-btn-outline-blue.is-disabled:hover {
+  background: var(--paper-inset);
+  border-color: var(--line-strong);
+  color: var(--ink-disabled);
+}
+
+.el-button.lp-btn-outline-warning {
+  background: var(--paper-raised);
+  border-color: var(--warning);
+  color: var(--warning);
+  font-weight: 500;
+}
+.el-button.lp-btn-outline-warning:hover,
+.el-button.lp-btn-outline-warning:focus {
+  background: var(--warning-soft);
+  border-color: var(--warning);
+  color: var(--warning);
+}
+
+// ============ 打印规则 ============
+// 默认 A4 纵向；实际纸张方向由 PreviewCanvas 注入的 @page 规则覆盖
+
+@page {
+  size: A4 portrait;
+  margin: 0;
+}
+
+@media print {
+  html,
+  body {
+    background: #fff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  body * {
+    visibility: hidden !important;
+  }
+  #print-area,
+  #print-area * {
+    visibility: visible !important;
+  }
+  #print-area {
+    position: absolute !important;
+    left: 0;
+    top: 0;
+    width: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: #fff;
+    overflow: visible !important;
+    display: block !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  // 预览质感装饰一律不进打印
+  .desk-grain,
+  .paper-fiber {
+    display: none !important;
+  }
+  .pages-stack {
+    display: block !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    gap: 0 !important;
+    width: auto !important;
+  }
+  // 打印时还原真实物理尺寸（1:1 毫米）
+  .page-wrapper {
+    display: block !important;
+    box-shadow: none !important;
+    outline: none !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    page-break-after: always;
+    break-after: page;
+  }
+  .page-wrapper.portrait {
+    width: 210mm !important;
+    height: 297mm !important;
+  }
+  .page-wrapper.landscape {
+    width: 297mm !important;
+    height: 210mm !important;
+  }
+  // 最后一页不加分页符，避免多出空白纸
+  .page-wrapper:last-child {
+    page-break-after: auto;
+    break-after: auto;
+  }
+}

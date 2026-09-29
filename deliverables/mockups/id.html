@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>证件 · 票据打印</title>
+<link rel="stylesheet" href="common.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- 顶栏 48 -->
+  <header class="topbar">
+    <span class="brand-mark">印</span>
+    <span class="brand-name">票据打印</span>
+    <span class="brand-sub">本地 · 离线可用</span>
+    <span class="topbar-right">
+      <button class="btn btn-warning-outline" type="button">重置全部</button>
+    </span>
+  </header>
+
+  <!-- Tab 栏 44 -->
+  <nav class="tabbar">
+    <span class="tab">发票</span>
+    <span class="tab">车票</span>
+    <span class="tab active">证件</span>
+  </nav>
+
+  <div class="main">
+
+    <!-- 左侧面板 280 -->
+    <aside class="panel">
+
+      <!-- ① 证件文件 -->
+      <section class="panel-section">
+        <h2 class="section-title">证件文件<span class="title-count">共 3 / 4 槽位</span></h2>
+
+        <!-- 批量上传区 -->
+        <div class="dropzone is-filled" style="padding:14px 12px;margin-bottom:10px;" tabindex="0" role="button" aria-label="批量上传证件">
+          <span class="dz-text">批量上传，按顺序填空槽</span>
+          <span class="dz-hint">已填 3 / 4 · 同一文件不会重复占用槽位</span>
+        </div>
+
+        <!-- 证件类型（对当前/新建槽位生效） -->
+        <div class="setting-row" style="margin-bottom:10px;">
+          <span class="sr-label">证件类型</span>
+          <span class="sr-control segmented" role="group" aria-label="证件类型">
+            <button class="seg-item selected" type="button">身份证</button>
+            <button class="seg-item" type="button">银行卡</button>
+            <button class="seg-item" type="button">户口簿</button>
+            <button class="seg-item" type="button">自定义</button>
+          </span>
+        </div>
+
+        <!-- 槽位 1：身份证正面 已填 -->
+        <div class="slot-card">
+          <div class="slot-head">
+            <span class="slot-no">槽 1</span>
+            <span class="badge-check" aria-label="已填">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            </span>
+            <span class="slot-title">身份证正面</span>
+            <span class="slot-size">89.5×57.9mm</span>
+          </div>
+          <div class="slot-file">
+            <span class="file-name"><span class="fnt">id-front.jpg</span></span>
+            <span class="item-actions">
+              <button class="mini-btn mini-rotate" type="button">旋转 0°</button>
+              <button class="mini-btn mini-delete" type="button">移除</button>
+            </span>
+          </div>
+        </div>
+
+        <!-- 槽位 2：身份证反面 已填 + 已矫正 -->
+        <div class="slot-card">
+          <div class="slot-head">
+            <span class="slot-no">槽 2</span>
+            <span class="badge-check" aria-label="已填">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            </span>
+            <span class="slot-title">身份证反面</span>
+            <span class="slot-size">89.5×57.9mm</span>
+          </div>
+          <div class="slot-file">
+            <span class="file-name"><span class="fnt">id-back.jpg</span><span class="tag-edited">已矫正</span></span>
+            <span class="item-actions">
+              <button class="mini-btn mini-rotate" type="button">旋转 0°</button>
+              <button class="mini-btn mini-delete" type="button">移除</button>
+            </span>
+          </div>
+        </div>
+
+        <!-- 槽位 3：银行卡 已填 -->
+        <div class="slot-card">
+          <div class="slot-head">
+            <span class="slot-no">槽 3</span>
+            <span class="badge-check" aria-label="已填">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            </span>
+            <span class="slot-title">银行卡</span>
+            <span class="slot-size">85.6×53.98mm</span>
+          </div>
+          <div class="slot-file">
+            <span class="file-name"><span class="fnt">bank-card.png</span></span>
+            <span class="item-actions">
+              <button class="mini-btn mini-rotate" type="button">旋转 0°</button>
+              <button class="mini-btn mini-delete" type="button">移除</button>
+            </span>
+          </div>
+        </div>
+
+        <!-- 槽位 4：空槽 -->
+        <div class="slot-card">
+          <div class="slot-head">
+            <span class="slot-no">槽 4</span>
+            <span class="slot-title">身份证</span>
+            <span class="slot-size">89.5×57.9mm</span>
+          </div>
+          <div class="slot-empty" tabindex="0" role="button" aria-label="为槽位 4 上传证件图片，当前类型：身份证 89.5×57.9 毫米">
+            <span class="se-plus">+</span>
+            <span class="se-text">点击或拖拽上传</span>
+            <span class="se-size">身份证 89.5 × 57.9 mm</span>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ② 证件排版 -->
+      <section class="panel-section">
+        <h2 class="section-title">证件排版</h2>
+        <div class="mode-grid" role="radiogroup" aria-label="证件排版模式">
+
+          <div class="mode-card selected" role="radio" aria-checked="true" tabindex="0" title="一页左右放两张证件，按真实尺寸打印。">
+            <span class="check">✓</span>
+            <svg class="mode-svg" width="22" height="31" viewBox="0 0 22 31" aria-hidden="true">
+              <rect x="0.5" y="0.5" width="21" height="30" rx="1" fill="#fff" stroke="#D8D2C5"/>
+              <rect class="block" x="2.5" y="7" width="7.5" height="5" rx="0.8"/>
+              <rect class="block" x="12" y="7" width="7.5" height="5" rx="0.8"/>
+              <rect class="block" x="2.5" y="19" width="7.5" height="5" rx="0.8"/>
+            </svg>
+            <span class="mode-name">双列</span>
+          </div>
+
+          <div class="mode-card" role="radio" aria-checked="false" tabindex="0" title="一页上下放两张证件，每张水平居中。">
+            <svg class="mode-svg" width="22" height="31" viewBox="0 0 22 31" aria-hidden="true">
+              <rect x="0.5" y="0.5" width="21" height="30" rx="1" fill="#fff" stroke="#D8D2C5"/>
+              <rect class="block" x="6.5" y="8" width="9" height="6" rx="0.8"/>
+              <rect class="block" x="6.5" y="18" width="9" height="6" rx="0.8"/>
+            </svg>
+            <span class="mode-name">双行</span>
+          </div>
+
+          <div class="mode-card" role="radio" aria-checked="false" tabindex="0" title="一页只放一张，端端正正居中。">
+            <svg class="mode-svg" width="22" height="31" viewBox="0 0 22 31" aria-hidden="true">
+              <rect x="0.5" y="0.5" width="21" height="30" rx="1" fill="#fff" stroke="#D8D2C5"/>
+              <rect class="block" x="5" y="12.5" width="12" height="7.5" rx="0.8"/>
+            </svg>
+            <span class="mode-name">居中单张</span>
+          </div>
+
+          <div class="mode-card" role="radio" aria-checked="false" tabindex="0" title="多张证件从上到下自动排，满页自动换页。">
+            <svg class="mode-svg" width="22" height="31" viewBox="0 0 22 31" aria-hidden="true">
+              <rect x="0.5" y="0.5" width="21" height="30" rx="1" fill="#fff" stroke="#D8D2C5"/>
+              <rect class="block" x="5" y="7" width="12" height="5" rx="0.8"/>
+              <rect class="block" x="5" y="13.5" width="12" height="5" rx="0.8"/>
+              <rect class="block" x="5" y="20" width="12" height="5" rx="0.8"/>
+            </svg>
+            <span class="mode-name">自动堆叠</span>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ③ 打印设置 -->
+      <section class="panel-section">
+        <h2 class="section-title">打印设置</h2>
+
+        <div class="setting-row">
+          <span class="sr-label">纸张方向</span>
+          <span class="sr-control segmented" role="group" aria-label="纸张方向">
+            <button class="seg-item selected" type="button">纵向</button>
+            <button class="seg-item" type="button">横向</button>
+          </span>
+        </div>
+
+        <div class="setting-row">
+          <span class="sr-label">色彩</span>
+          <span class="sr-control segmented" role="group" aria-label="色彩模式">
+            <button class="seg-item selected" type="button">彩色</button>
+            <button class="seg-item" type="button">黑白</button>
+          </span>
+        </div>
+
+        <div class="setting-row">
+          <span class="sr-label">份数</span>
+          <span class="sr-control stepper" aria-label="打印份数">
+            <button type="button" aria-label="减少份数">−</button>
+            <input class="copies-value" value="1" aria-label="份数">
+            <button type="button" aria-label="增加份数">+</button>
+          </span>
+        </div>
+      </section>
+
+    </aside>
+
+    <!-- 右侧桌面预览 -->
+    <section class="desk">
+      <div class="desk-inner">
+        <div class="a4-stack">
+          <div class="a4">
+
+            <!-- 水印：内容层，可进打印（按现有实现，5%） -->
+            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:3;">
+              <span style="font-size:40px;font-weight:600;color:rgba(38,36,31,.05);transform:rotate(-24deg);letter-spacing:6px;">本地票据打印</span>
+            </div>
+
+            <!-- 真实尺寸排布：第一行身份证正反，第二行左银行卡 -->
+            <div class="a4-content" style="display:flex;flex-direction:column;gap:14px;z-index:2;">
+              <div style="display:flex;gap:14px;">
+                <div class="id-block" style="flex:1;aspect-ratio:89.5/57.9;">
+                  <div class="tb-lines">
+                    <div class="tb-line short"></div>
+                    <div class="tb-line mid"></div>
+                    <div class="tb-line thin"></div>
+                  </div>
+                </div>
+                <div class="id-block" style="flex:1;aspect-ratio:89.5/57.9;">
+                  <div class="tb-lines">
+                    <div class="tb-line"></div>
+                    <div class="tb-line mid"></div>
+                    <div class="tb-line thin"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div style="display:flex;gap:14px;">
+                <div class="id-block" style="flex:1;aspect-ratio:85.6/53.98;">
+                  <div class="tb-lines">
+                    <div class="tb-line short"></div>
+                    <div class="tb-line mid"></div>
+                    <div class="tb-line thin"></div>
+                  </div>
+                </div>
+                <!-- 物理留白 -->
+                <div style="flex:1;"></div>
+              </div>
+            </div>
+
+            <!-- ====== 透视编辑器（仅预览，不进打印/导出） ====== -->
+            <div class="persp-overlay">
+
+              <!-- 朱红 dashed 透视框（围住槽位1）+ 8% 朱红填充 -->
+              <svg width="476" height="674" viewBox="0 0 476 674" style="position:absolute;inset:0;" aria-hidden="true">
+                <polygon points="34,36 218,30 224,142 30,148"
+                         fill="rgba(192,57,43,.08)"
+                         stroke="#C0392B" stroke-width="1.5"
+                         stroke-dasharray="6 4" stroke-linejoin="round"/>
+              </svg>
+
+              <!-- 4 个角点：右上为选中/拖拽态（14px 加深） -->
+              <span class="persp-corner" style="left:28px;top:30px;" role="slider" aria-label="左上角点，方向键微调"></span>
+              <span class="persp-corner active" style="left:211px;top:23px;" role="slider" aria-label="右上角点，当前选中，方向键微调 1 像素，Shift 加方向键 10 像素"></span>
+              <span class="persp-corner" style="left:218px;top:135px;" role="slider" aria-label="右下角点，方向键微调"></span>
+              <span class="persp-corner" style="left:24px;top:142px;" role="slider" aria-label="左下角点，方向键微调"></span>
+            </div>
+
+            <!-- 编辑器工具条 -->
+            <div class="persp-toolbar">
+              <span class="persp-label">编辑槽位</span>
+              <span class="slot-pills" role="group" aria-label="选择编辑槽位">
+                <button class="slot-pill selected" type="button">1</button>
+                <button class="slot-pill" type="button">2</button>
+                <button class="slot-pill" type="button">3</button>
+                <button class="slot-pill" type="button" disabled>4</button>
+              </span>
+              <span class="toolbar-divider"></span>
+              <button class="btn btn-outline-blue btn-sm" type="button">重置角点</button>
+              <button class="btn btn-seal btn-sm" type="button">裁剪确认</button>
+            </div>
+
+            <!-- 键盘微调提示胶囊 -->
+            <div class="kbd-hint">方向键微调 1px，Shift+方向键 10px</div>
+
+          </div>
+        </div>
+
+        <!-- 翻页工具条 -->
+        <div class="pager">
+          <button class="pager-icon is-disabled" type="button" aria-label="首页" disabled>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m11 17-5-5 5-5"/><path d="m18 17-5-5 5-5"/></svg>
+          </button>
+          <button class="pager-icon is-disabled" type="button" aria-label="上一页" disabled>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+          </button>
+          <span class="pager-page">第 1 / 2 页</span>
+          <button class="pager-icon" type="button" aria-label="下一页">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+          </button>
+          <button class="pager-icon" type="button" aria-label="末页">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m13 17 5-5-5-5"/><path d="m6 17 5-5-5-5"/></svg>
+          </button>
+          <span class="pager-divider"></span>
+          <span class="view-seg segmented">
+            <button class="seg-item selected" type="button">单页</button>
+            <button class="seg-item" type="button">连续</button>
+          </span>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- 底部操作栏 52 -->
+  <footer class="statusbar-wrap">
+    <button class="btn btn-seal" type="button">打印</button>
+    <button class="btn btn-outline-blue" type="button">另存 PDF</button>
+    <span class="statusbar">
+      <b>3/4</b> 槽位<span class="dot">·</span>A4 纵向<span class="dot">·</span>彩色<span class="dot">·</span><b>1</b> 份<span class="dot">·</span>共 <b>2</b> 页
+    </span>
+  </footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,101 @@
+classDiagram
+    class UiStore {
+        +activeTab: TabKey
+        +orientation: 'portrait' | 'landscape'
+        +colorMode: 'color' | 'bw'
+        +copies: number
+        +setTab(k: TabKey): void
+        +toggleOrientation(): void
+        +setColorMode(m): void
+        +setCopies(n: number): void
+    }
+
+    class FilesStore {
+        +invoice: ParsedPage[]
+        +ticket: ParsedPage[]
+        +id: ParsedSlot[]
+        +addFiles(tab, files): Promise~void~
+        +remove(tab, id): void
+        +clear(tab): void
+        +rotate(tab, id, deg): void
+        +dedupKey(f: File): string
+    }
+
+    class LayoutStore {
+        +invoice: InvoiceMode
+        +ticket: TicketMode
+        +id: IdMode
+        +setMode(tab, mode): void
+        +hydrate(): void
+    }
+
+    class PerspectiveStore {
+        +corners: Record~number, Corner[]~
+        +setCorner(slot, idx, x, y): boolean
+        +getCorners(slot): Corner[]
+        +hasEdited(slot): boolean
+        +reset(slot): void
+        +hydrate(): void
+    }
+
+    class ParsedPage {
+        +id: string
+        +name: string
+        +size: number
+        +width: number
+        +height: number
+        +bitmap: HTMLCanvasElement
+        +rotation: 0|90|180|270
+        +mime: 'pdf'|'jpg'|'png'
+    }
+
+    class ParsedSlot {
+        +slot: 0|1|2|3
+        +page: ParsedPage | null
+        +sizePreset: IdSizeKey
+        +customW: number
+        +customH: number
+    }
+
+    class Corner {
+        +x: number
+        +y: number
+    }
+
+    class FileParser {
+        <<utility>>
+        +parse(file: File, tab: TabKey): Promise~ParsedPage[]~
+        +dedupKey(f: File): string
+    }
+
+    class PdfExport {
+        <<utility>>
+        +export(pages: LayoutPage[], name: string): Promise~Blob~
+    }
+
+    class PerspectiveSvc {
+        <<utility>>
+        +loadOpencv(): Promise~any~
+        +warp(canvas: HTMLCanvasElement, corners: Corner[]): Promise~HTMLCanvasElement~
+    }
+
+    class CanvasHelpers {
+        <<utility>>
+        +drawPage(ctx, page, x, y, w, h): void
+        +drawWatermark(ctx, text, w, h): void
+        +toGrayscale(canvas): HTMLCanvasElement
+        +storageGet/set(key, fallback): T
+    }
+
+    class LayoutEngine {
+        <<utility>>
+        +layout(tab: TabKey, files: any, ui: UiStore): LayoutPage[]
+    }
+
+    UiStore --> LayoutEngine : consumes
+    FilesStore --> FileParser : delegates
+    FilesStore --> LayoutEngine : consumes
+    LayoutStore --> LayoutEngine : consumes
+    PerspectiveStore --> PerspectiveSvc : delegates
+    LayoutEngine --> CanvasHelpers : draw
+    PdfExport --> CanvasHelpers : bitmap -> png
