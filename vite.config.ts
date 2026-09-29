@@ -9,7 +9,12 @@ import { fileURLToPath } from 'node:url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-export default defineConfig({
+/**
+ * GitHub Pages 子路径：https://<user>.github.io/print-tools/
+ * 构建时资源前缀必须带该子路径；本地 dev 仍用根路径。
+ */
+export default defineConfig(({ command }) => ({
+  base: command === 'build' ? '/print-tools/' : '/',
   plugins: [
     vue(),
     AutoImport({
@@ -70,4 +75,4 @@ export default defineConfig({
       }
     }
   }
-})
+}))
