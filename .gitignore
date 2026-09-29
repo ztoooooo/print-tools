@@ -34,5 +34,8 @@ Thumbs.db
 # WorkBuddy 本地工作数据
 .workbuddy/
 
+# WorkBuddy 发布标记
+.wbapp_*.genie
+
 # 端到端验证临时产物
 e2e-shots/

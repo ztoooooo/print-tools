@@ -10,11 +10,12 @@ import { fileURLToPath } from 'node:url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 /**
- * GitHub Pages 子路径：https://<user>.github.io/print-tools/
- * 构建时资源前缀必须带该子路径；本地 dev 仍用根路径。
+ * 构建产物用相对路径前缀，保证在任意部署位置都能正确解析资源：
+ * 根路径（反代分享链接）、子路径（GitHub Pages 的 /print-tools/）都通用。
+ * 本地 dev 仍用根路径。
  */
 export default defineConfig(({ command }) => ({
-  base: command === 'build' ? '/print-tools/' : '/',
+  base: command === 'build' ? './' : '/',
   plugins: [
     vue(),
     AutoImport({
@@ -33,8 +34,10 @@ export default defineConfig(({ command }) => ({
     }
   },
   optimizeDeps: {
-    include: ['pdfjs-dist'],
-    exclude: ['@techstark/opencv-js']
+    // @techstark/opencv-js 是 13MB 的 UMD（module.exports = factory()），
+    // 真实导出藏在工厂返回值内。必须强制 esbuild 预构建，
+    // 否则 dev 下 Vite 直接服务原始 UMD，ESM 命名空间为空（loadOpencv 全分支落空）。
+    include: ['pdfjs-dist', '@techstark/opencv-js']
   },
   worker: {
     format: 'es'

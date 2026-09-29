@@ -74,11 +74,13 @@ describe('静态审计：opencv 懒加载', () => {
     expect(src).not.toMatch(/opencv/i)
   })
 
-  it('vite.config.ts 在 optimizeDeps.exclude 排除 opencv（辅助）', async () => {
+  it('vite.config.ts 在 optimizeDeps.include 强制预构建 opencv（必需）', async () => {
     const src = await readSrc('../vite.config.ts')
     expect(src).toMatch(/optimizeDeps/)
-    expect(src).toMatch(/exclude/)
-    expect(src).toMatch(/opencv/)
+    expect(src).toMatch(/include/)
+    expect(src).toMatch(/@techstark\/opencv-js/)
+    // 不能再 exclude 它，否则 dev 下 ESM 命名空间为空
+    expect(src).not.toMatch(/exclude:\s*\[[^\]]*opencv/)
   })
 })
 
