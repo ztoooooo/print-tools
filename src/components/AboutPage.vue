@@ -2,9 +2,20 @@
 import { computed } from 'vue'
 import { useUiStore } from '@/stores/ui'
 import { toast } from '@/utils/canvas-helpers'
+import { CHANGELOG } from '@/data/changelog'
+import type { ChangeKind } from '@/data/changelog'
 
 const ui = useUiStore()
 const email = '747473366@qq.com'
+
+/** 当前版本与版本日期（取更新日志首条，单一数据源） */
+const current = computed(() => CHANGELOG[0])
+
+const KIND_META: Record<ChangeKind, { label: string; cls: string }> = {
+  new: { label: '新增', cls: 'k-new' },
+  improve: { label: '优化', cls: 'k-improve' },
+  fix: { label: '修复', cls: 'k-fix' }
+}
 
 const visible = computed({
   get: () => ui.activeDialog === 'about',
@@ -36,7 +47,28 @@ async function copyEmail() {
         <span class="brand-mark">印</span>
         <div>
           <h2>票据打印</h2>
-          <p class="ver">版本 1.0 · 纯前端本地工具 · 离线可用</p>
+          <p class="ver">版本 {{ current.version }} · 纯前端本地工具 · 离线可用</p>
+        </div>
+      </section>
+
+      <section class="card">
+        <h3>更新日志</h3>
+        <div class="log">
+          <div v-for="entry in CHANGELOG" :key="entry.version" class="log-entry">
+            <div class="log-head">
+              <span class="log-ver">v{{ entry.version }}</span>
+              <span v-if="entry.title" class="log-title">{{ entry.title }}</span>
+              <span class="log-date">{{ entry.date }}</span>
+            </div>
+            <ul class="log-list">
+              <li v-for="(c, i) in entry.changes" :key="i" class="log-item">
+                <span class="log-tag" :class="KIND_META[c.kind].cls">
+                  {{ KIND_META[c.kind].label }}
+                </span>
+                <span class="log-text">{{ c.text }}</span>
+              </li>
+            </ul>
+          </div>
         </div>
       </section>
 
@@ -205,5 +237,88 @@ async function copyEmail() {
 .copy-btn:hover {
   border-color: var(--ink-blue);
   color: var(--ink-blue);
+}
+
+/* ---------- 更新日志 ---------- */
+.log {
+  display: flex;
+  flex-direction: column;
+}
+.log-entry {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+.log-entry:first-child {
+  padding-top: 2px;
+}
+.log-entry:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.log-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.log-ver {
+  font-family: var(--font-num);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink-strong);
+}
+.log-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-body);
+}
+.log-date {
+  margin-left: auto;
+  font-family: var(--font-num);
+  font-size: 11px;
+  color: var(--ink-placeholder);
+}
+.log-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.log-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--ink-body);
+  line-height: 1.5;
+}
+.log-tag {
+  flex-shrink: 0;
+  min-width: 32px;
+  text-align: center;
+  padding: 0 5px;
+  margin-top: 2px;
+  height: 17px;
+  line-height: 17px;
+  border-radius: 4px;
+  font-size: 10.5px;
+  font-weight: 600;
+}
+.log-tag.k-new {
+  background: var(--success-soft);
+  color: var(--success);
+}
+.log-tag.k-improve {
+  background: var(--ink-blue-soft);
+  color: var(--ink-blue);
+}
+.log-tag.k-fix {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+.log-text {
+  min-width: 0;
 }
 </style>
