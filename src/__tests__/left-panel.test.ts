@@ -69,7 +69,7 @@ function setup(tab: TabKey): Ctx {
 
 /** 往指定空槽位塞一个文件（走该槽位内的 file input） */
 async function uploadToSlot(wrapper: VueWrapper<any>, slotIdx: number, file: File) {
-  const box = wrapper.findAll('.slot-box')[slotIdx]
+  const box = wrapper.findAll('.slot-card')[slotIdx]
   const input = box.find('input[type="file"]')
   if (!input.exists()) throw new Error(`槽位 ${slotIdx} 没有上传入口（可能已被占用）`)
   Object.defineProperty(input.element, 'files', { value: [file], configurable: true })
@@ -79,13 +79,13 @@ async function uploadToSlot(wrapper: VueWrapper<any>, slotIdx: number, file: Fil
 
 /** 拖拽文件到指定槽位（空 / 已占用都支持） */
 async function dropOnSlot(wrapper: VueWrapper<any>, slotIdx: number, files: File[]) {
-  const box = wrapper.findAll('.slot-box')[slotIdx]
+  const box = wrapper.findAll('.slot-card')[slotIdx]
   await box.trigger('drop', { dataTransfer: { files } })
   await flushPromises()
 }
 
 function btnByTitle(wrapper: VueWrapper<any>, titlePart: string) {
-  const b = wrapper.findAll('button.act-btn').find((x) => (x.attributes('title') || '').includes(titlePart))
+  const b = wrapper.findAll('button.mini-btn').find((x) => (x.attributes('title') || '').includes(titlePart))
   if (!b) throw new Error(`未找到按钮：${titlePart}`)
   return b
 }
@@ -97,7 +97,7 @@ describe('LeftPanel · 证件 Tab 上传能力', () => {
 
   it('渲染 4 个槽位上传入口，每个都带 file input', () => {
     const { wrapper } = setup('id')
-    const drops = wrapper.findAll('.slot-drop')
+    const drops = wrapper.findAll('.slot-empty')
     expect(drops.length).toBe(4)
     for (const d of drops) {
       const input = d.find('input[type="file"]')
@@ -107,7 +107,7 @@ describe('LeftPanel · 证件 Tab 上传能力', () => {
       expect(input.attributes('accept')).toContain('image/*')
     }
     // 空槽位时不应出现操作按钮
-    expect(wrapper.findAll('button.act-btn').length).toBe(0)
+    expect(wrapper.findAll('button.mini-btn').length).toBe(0)
   })
 
   it('提供批量上传入口（自动填入空槽位）', () => {
@@ -126,7 +126,7 @@ describe('LeftPanel · 证件 Tab 上传能力', () => {
     expect(files.id[1].page).not.toBeNull()
     expect(files.id[0].page).toBeNull()
     // 只剩 3 个可上传入口
-    expect(wrapper.findAll('.slot-drop').length).toBe(3)
+    expect(wrapper.findAll('.slot-empty').length).toBe(3)
     // 上传的槽位显示文件名
     expect(wrapper.find('.slot-file').exists()).toBe(true)
     expect(wrapper.find('.slot-file .file-name').text()).toContain('id.jpg')
@@ -153,11 +153,11 @@ describe('LeftPanel · 证件 Tab 上传能力', () => {
   it('槽位「移除」按钮：清空该槽位并恢复上传入口', async () => {
     const { wrapper, files } = setup('id')
     await uploadToSlot(wrapper, 2, makeFile('rm.jpg'))
-    expect(wrapper.findAll('.slot-drop').length).toBe(3)
+    expect(wrapper.findAll('.slot-empty').length).toBe(3)
 
     await btnByTitle(wrapper, '移除').trigger('click')
     expect(files.id[2].page).toBeNull()
-    expect(wrapper.findAll('.slot-drop').length).toBe(4)
+    expect(wrapper.findAll('.slot-empty').length).toBe(4)
   })
 
   it('替换已占用槽位的图片：拖拽新图到该槽位即替换', async () => {
@@ -195,7 +195,7 @@ describe('LeftPanel · 旋转 / 删除按钮视觉与行为', () => {
 
   it('发票 Tab 不渲染证件槽位，但有批量上传入口', () => {
     const { wrapper } = setup('invoice')
-    expect(wrapper.findAll('.slot-drop').length).toBe(0)
+    expect(wrapper.findAll('.slot-empty').length).toBe(0)
     expect(wrapper.findAll('input[type="file"][multiple]').length).toBe(1)
   })
 
@@ -204,17 +204,18 @@ describe('LeftPanel · 旋转 / 删除按钮视觉与行为', () => {
     files.invoice.push(makePage('a.pdf'), makePage('b.pdf'))
     await wrapper.vm.$nextTick()
 
-    const btns = wrapper.findAll('button.act-btn')
+    const btns = wrapper.findAll('button.mini-btn')
     expect(btns.length).toBe(4) // 2 个文件 × 2 个按钮
 
     // 旋转按钮：显示当前角度，title 说明动作
-    const rotates = btns.filter((b) => b.classes('act-rotate'))
-    const dels = btns.filter((b) => b.classes('act-del'))
+    const rotates = btns.filter((b) => b.classes('mini-rotate'))
+    const dels = btns.filter((b) => b.classes('mini-delete'))
     expect(rotates.length).toBe(2)
     expect(dels.length).toBe(2)
 
     for (const b of rotates) {
-      expect(b.text()).toMatch(/旋转 \d+°/)
+      // 文本显示当前角度，旋转 0° 时仅显示「旋转」
+      expect(b.text()).toMatch(/^旋转( \d+°)?$/)
       expect(b.attributes('title')).toContain('旋转 90°')
       expect(b.attributes('type')).toBe('button')
     }
@@ -225,17 +226,20 @@ describe('LeftPanel · 旋转 / 删除按钮视觉与行为', () => {
     }
   })
 
-  it('按钮内的图标 SVG 处于 SVG 命名空间（图标能被正确渲染）', async () => {
-    const { wrapper, files } = setup('invoice')
-    files.invoice.push(makePage('icon.pdf'))
-    await wrapper.vm.$nextTick()
+  it('面板内联 SVG 图标处于 SVG 命名空间（图标能被正确渲染）', () => {
+    const { wrapper } = setup('invoice')
 
-    const svgs = wrapper.findAll('button.act-btn svg')
-    expect(svgs.length).toBe(2)
-    for (const s of svgs) {
+    // 上传箭头图标 + 4 个排版模式图示，均为内联 <svg>
+    const icons = wrapper.findAll('svg.dz-svg, svg.mode-svg')
+    expect(icons.length).toBe(5)
+    for (const s of icons) {
       expect((s.element as SVGElement).namespaceURI).toBe('http://www.w3.org/2000/svg')
-      expect((s.element as SVGElement).querySelector('path')).not.toBeNull()
     }
+    // 上传箭头图标含 <path>，能实际绘制
+    const dz = wrapper.find('svg.dz-svg')
+    expect(dz.exists()).toBe(true)
+    expect((dz.element as SVGElement).namespaceURI).toBe('http://www.w3.org/2000/svg')
+    expect((dz.element as SVGElement).querySelector('path')).not.toBeNull()
   })
 
   it('点击旋转按钮更新 store 中的 rotation（0 → 90 → 180 → 270 → 0）', async () => {
@@ -265,6 +269,6 @@ describe('LeftPanel · 旋转 / 删除按钮视觉与行为', () => {
   it('空列表时显示占位提示，不渲染任何操作按钮', () => {
     const { wrapper } = setup('invoice')
     expect(wrapper.text()).toContain('暂无文件')
-    expect(wrapper.findAll('button.act-btn').length).toBe(0)
+    expect(wrapper.findAll('button.mini-btn').length).toBe(0)
   })
 })

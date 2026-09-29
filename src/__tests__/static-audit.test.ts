@@ -310,18 +310,18 @@ describe('静态审计：左侧面板上传与操作按钮', () => {
   it('证件 Tab 提供上传入口（每个槽位 + 批量）', async () => {
     const src = await readSrc('components/LeftPanel.vue')
     // 槽位上传入口
-    expect(src).toMatch(/class="slot-drop"/)
+    expect(src).toMatch(/class="slot-empty"/)
     expect(src).toMatch(/onSlotPick/)
     // 批量上传入口
     expect(src).toMatch(/class="dropzone dropzone-sm"/)
     // 拖拽对整块槽位生效（空/满槽位都可替换）
-    expect(src).toMatch(/class="slot-box"[\s\S]{0,200}@drop="\(e\) => onSlotDrop\(s\.slot, e\)"/)
+    expect(src).toMatch(/class="slot-card"[\s\S]{0,200}@drop="\(e\) => onSlotDrop\(s\.slot, e\)"/)
   })
 
   it('文件列表的旋转 / 删除改为独立按钮（不再是 el-button link 纯文字）', async () => {
     const src = await readSrc('components/LeftPanel.vue')
-    expect(src).toMatch(/class="act-btn act-rotate"/)
-    expect(src).toMatch(/class="act-btn act-del"/)
+    expect(src).toMatch(/class="mini-btn mini-rotate"/)
+    expect(src).toMatch(/class="mini-btn mini-delete"/)
     expect(src).toMatch(/type="button"/)
     // 旧实现：link 按钮 + 纯文字
     expect(src).not.toMatch(/el-button size="small" link @click="rotate/)
@@ -331,8 +331,9 @@ describe('静态审计：左侧面板上传与操作按钮', () => {
   it('图标用内联 SVG，不引入图标库依赖', async () => {
     const src = await readSrc('components/LeftPanel.vue')
     const pkg = await readSrc('../package.json')
-    expect(src).toMatch(/const RotateIcon/)
-    expect(src).toMatch(/const TrashIcon/)
+    // 内联 <svg> 实现，描边走 currentColor；不再依赖自定义图标组件
+    expect(src).toMatch(/<svg\b/)
+    expect(src).toMatch(/stroke="currentColor"/)
     expect(src).not.toMatch(/@element-plus\/icons-vue/)
     expect(pkg).not.toMatch(/@element-plus\/icons-vue/)
   })
