@@ -53,9 +53,6 @@ export const ID_PRESETS: Record<IdSizeKey, { w: number; h: number; name: string 
 export const CUSTOM_MIN_MM = 1
 export const CUSTOM_MAX_MM = 300
 
-/** 预览缩放（屏幕展示时缩小，避免溢出） */
-export const PREVIEW_SCALE = 0.65
-
 /** localStorage key 约定（统一前缀） */
 export const LS_KEYS = {
   invoiceLayout: 'lpt/v1/invoiceLayout',
@@ -65,6 +62,8 @@ export const LS_KEYS = {
   copies: 'lpt/v1/copies',
   colorMode: 'lpt/v1/colorMode',
   previewMode: 'lpt/v1/previewMode',
+  zoomMode: 'lpt/v1/zoomMode',
+  zoomPercent: 'lpt/v1/zoomPercent',
   settings: 'lpt/v1/settings',
   activeTab: 'lpt/v1/activeTab',
   perspective: (slot: number) => `lpt/v1/perspective/${slot}`

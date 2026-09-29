@@ -54,7 +54,13 @@ function visiblePageIndex(wrapper: VueWrapper<any>): number {
 }
 
 function buttonByText(wrapper: VueWrapper<any>, text: string) {
-  const btn = wrapper.findAll('button').find((b) => b.text().replace(/\s/g, '') === text)
+  // 翻页按钮内部只有 SVG 图标，语义在 title 属性上；
+  // 视图切换按钮（单页/连续）文字与 title 一致。统一优先按 title 匹配，再回落到可见文本。
+  const btn = wrapper.findAll('button').find((b) => {
+    const title = b.attributes('title')
+    if (title && title.replace(/\s/g, '') === text) return true
+    return b.text().replace(/\s/g, '') === text
+  })
   if (!btn) throw new Error(`未找到按钮：${text}`)
   return btn
 }
@@ -165,25 +171,38 @@ describe('PreviewCanvas 翻页预览', () => {
     await nextTick()
     expect(hiddenPages(wrapper)).toBe(0)
 
-    await buttonByText(wrapper, '单页翻页').trigger('click')
+    await buttonByText(wrapper, '单页').trigger('click')
     await nextTick()
     expect(hiddenPages(wrapper)).toBe(4)
     expect(pagerValue(wrapper)).toBe('2')
     expect(visiblePageIndex(wrapper)).toBe(1)
   })
 
-  it('只有一页时不显示页码导航', async () => {
+  it('只有一页时仍常驻显示悬浮工具条', async () => {
     const { wrapper } = await setup((s) => {
       s.layout.invoice = 'single' as InvoiceMode
       s.files.invoice.push(makePage('one.jpg'))
     })
     expect(wrapper.findAll('.page-wrapper').length).toBe(1)
+    expect(wrapper.find('.pager').exists()).toBe(true)
+    expect(wrapper.text()).toContain('/ 1 页')
+  })
+
+  it('空内容时不显示悬浮工具条', async () => {
+    const { wrapper } = await setup(() => {})
     expect(wrapper.find('.pager').exists()).toBe(false)
   })
 
-  it('空内容时不显示页码导航', async () => {
-    const { wrapper } = await setup(() => {})
-    expect(wrapper.find('.pager').exists()).toBe(false)
+  it('缩放控件显示当前百分比，点击 + / − 可调整大小', async () => {
+    const { wrapper } = await setup(seedFiveInvoices())
+    const zoomText = () => wrapper.find('.zoom-value').text().replace(/\s/g, '')
+    const before = parseInt(zoomText(), 10)
+    await wrapper.find('button[title="放大 (Ctrl +)"]').trigger('click')
+    await nextTick()
+    expect(parseInt(zoomText(), 10)).toBe(before + 10)
+    await wrapper.find('button[title="缩小 (Ctrl -)"]').trigger('click')
+    await nextTick()
+    expect(parseInt(zoomText(), 10)).toBe(before)
   })
 
   it('删除文件导致页数减少时，页码自动回收而不越界', async () => {

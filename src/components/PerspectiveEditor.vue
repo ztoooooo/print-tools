@@ -6,7 +6,7 @@ import { usePerspectiveStore } from '@/stores/perspective'
 import { useUiStore } from '@/stores/ui'
 import { warp } from '@/utils/perspective'
 import { layoutId, toast } from '@/utils/canvas-helpers'
-import { MM_TO_PX, PREVIEW_SCALE } from '@/units'
+import { MM_TO_PX } from '@/units'
 import type { Corner, LayoutItem } from '@/types'
 
 type Slot = 0 | 1 | 2 | 3
@@ -18,6 +18,8 @@ interface Props {
   pageIndex: number
   /** 当前编辑的证件槽位 */
   activeSlot: Slot
+  /** 当前预览缩放系数（1 = 96 DPI 真实大小），覆盖层定位需随缩放同步 */
+  zoom: number
 }
 const props = defineProps<Props>()
 const emit = defineEmits<{ 'update:activeSlot': [slot: Slot] }>()
@@ -48,10 +50,10 @@ const box = computed(() => {
   const it = activeItem.value
   if (!it) return null
   return {
-    left: it.xMM * MM_TO_PX * PREVIEW_SCALE,
-    top: it.yMM * MM_TO_PX * PREVIEW_SCALE,
-    w: it.renderWMM * MM_TO_PX * PREVIEW_SCALE,
-    h: it.renderHMM * MM_TO_PX * PREVIEW_SCALE
+    left: it.xMM * MM_TO_PX * props.zoom,
+    top: it.yMM * MM_TO_PX * props.zoom,
+    w: it.renderWMM * MM_TO_PX * props.zoom,
+    h: it.renderHMM * MM_TO_PX * props.zoom
   }
 })
 

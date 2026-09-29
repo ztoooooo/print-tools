@@ -255,9 +255,10 @@ describe('静态审计：证件四点编辑器跟随当前页', () => {
     const src = await readSrc('components/PerspectiveEditor.vue')
     expect(src).toMatch(/pageIndex:\s*number/)
     expect(src).toMatch(/'update:activeSlot'/)
-    // 角点覆盖层按排版项的 mm 坐标偏移绘制（而非固定铺满整页）
-    expect(src).toMatch(/it\.xMM\s*\*\s*MM_TO_PX\s*\*\s*PREVIEW_SCALE/)
-    expect(src).toMatch(/it\.yMM\s*\*\s*MM_TO_PX\s*\*\s*PREVIEW_SCALE/)
+    // 接收当前缩放系数，角点覆盖层按排版项的 mm 坐标 × 缩放偏移绘制
+    expect(src).toMatch(/zoom:\s*number/)
+    expect(src).toMatch(/it\.xMM\s*\*\s*MM_TO_PX\s*\*\s*props\.zoom/)
+    expect(src).toMatch(/it\.yMM\s*\*\s*MM_TO_PX\s*\*\s*props\.zoom/)
   })
 
   it('PreviewCanvas.vue 将编辑器挂载在「当前槽位所在页」并联动翻页', async () => {
@@ -265,6 +266,8 @@ describe('静态审计：证件四点编辑器跟随当前页', () => {
     expect(src).toMatch(/activeIdSlotPage/)
     expect(src).toMatch(/idx === activeIdSlotPage/)
     expect(src).toMatch(/activeIdSlotPage, \(i\)/)
+    // 缩放变化时覆盖层跟随
+    expect(src).toMatch(/:zoom="effectivePercent \/ 100"/)
   })
 })
 

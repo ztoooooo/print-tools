@@ -9,7 +9,6 @@ import {
   A4_H_PRINT_PX,
   A4_W_PRINT_PX,
   LS_KEYS,
-  PREVIEW_SCALE,
   PRINT_MM_TO_PX
 } from '@/units'
 import {
@@ -35,6 +34,8 @@ const settings = useSettingsStore()
 const pages = ref<HTMLCanvasElement[]>([])
 /** 模板中每个 canvas 的 DOM 引用 */
 const canvasRefs = ref<Record<number, HTMLCanvasElement>>({})
+/** 预览滚动容器（用于「适应」模式测量可用空间） */
+const containerRef = ref<HTMLElement | null>(null)
 
 /** 预览方式：page = 单页翻页（默认） / scroll = 连续滚动 */
 type ViewMode = 'page' | 'scroll'
@@ -50,9 +51,64 @@ const pageInput = ref('1')
 /** 证件 Tab 当前编辑槽位 */
 const activeIdSlot = ref<0 | 1 | 2 | 3>(0)
 
+/** 缩放模式：fit = 适应窗口（默认） / custom = 自定义百分比 */
+type ZoomMode = 'fit' | 'custom'
+const zoomMode = ref<ZoomMode>(
+  storageGet<string>(LS_KEYS.zoomMode, 'fit') === 'custom' ? 'custom' : 'fit'
+)
+/** 自定义缩放百分比（以 96 DPI 真实大小为 100%） */
+const zoomPercent = ref(clampZoom(Number(storageGet<number>(LS_KEYS.zoomPercent, 65)) || 65))
+watch(zoomMode, (v) => storageSet(LS_KEYS.zoomMode, v))
+watch(zoomPercent, (v) => storageSet(LS_KEYS.zoomPercent, v))
+
+/** 缩放百分比限制与步进 */
+const ZOOM_MIN = 25
+const ZOOM_MAX = 300
+const ZOOM_STEP = 10
+function clampZoom(v: number) {
+  return Math.min(Math.max(Number.isFinite(v) ? Math.round(v) : 65, ZOOM_MIN), ZOOM_MAX)
+}
+
+/** 「适应窗口」下应使用的缩放百分比：让整页（含边距）完整落在可视区域 */
+const fitPercent = ref(65)
+function measureFit() {
+  const el = containerRef.value
+  if (!el) return
+  const baseW = ui.orientation === 'portrait' ? A4_W_PX : A4_H_PX
+  const baseH = ui.orientation === 'portrait' ? A4_H_PX : A4_W_PX
+  // 容器内可用宽高（预留内边距与底部悬浮条空间）
+  const availW = el.clientWidth - 40
+  const availH = el.clientHeight - 76
+  const scale = Math.min(availW / baseW, availH / baseH)
+  fitPercent.value = clampZoom(scale * 100)
+}
+
+/** 界面实际生效的百分比（适应模式取测量值，自定义取用户值） */
+const effectivePercent = computed(() =>
+  zoomMode.value === 'fit' ? fitPercent.value : zoomPercent.value
+)
+
+function setCustomZoom(v: number) {
+  zoomPercent.value = clampZoom(v)
+  zoomMode.value = 'custom'
+}
+function zoomIn() {
+  setCustomZoom(
+    (zoomMode.value === 'custom' ? zoomPercent.value : fitPercent.value) + ZOOM_STEP
+  )
+}
+function zoomOut() {
+  setCustomZoom(
+    (zoomMode.value === 'custom' ? zoomPercent.value : fitPercent.value) - ZOOM_STEP
+  )
+}
+function zoomFit() {
+  zoomMode.value = 'fit'
+}
+
 /**
  * backing 画布像素尺寸（PRINT_DPI = 300），位图与坐标都以此为基准，保证清晰。
- * 屏幕显示尺寸由 displayDims（96 DPI × PREVIEW_SCALE）通过 CSS 缩小，
+ * 屏幕显示尺寸由 displayDims（96 DPI × 当前缩放百分比）通过 CSS 缩小，
  * 浏览器对「大 backing → 小显示」做高质量下采样，因此锐利。
  */
 const dims = computed(() => {
@@ -61,11 +117,12 @@ const dims = computed(() => {
   return { w, h }
 })
 
-/** 屏幕显示尺寸（CSS px）：以 96 DPI A4 为基准再乘预览缩放 */
+/** 屏幕显示尺寸（CSS px）：以 96 DPI A4 真实大小为 100%，再乘缩放百分比 */
 const displayDims = computed(() => {
   const baseW = ui.orientation === 'portrait' ? A4_W_PX : A4_H_PX
   const baseH = ui.orientation === 'portrait' ? A4_H_PX : A4_W_PX
-  return { w: baseW * PREVIEW_SCALE, h: baseH * PREVIEW_SCALE }
+  const k = effectivePercent.value / 100
+  return { w: baseW * k, h: baseH * k }
 })
 
 const layouts = computed<LayoutPage[]>(() => {
@@ -76,8 +133,8 @@ const layouts = computed<LayoutPage[]>(() => {
 
 /** 总页数 */
 const pageCount = computed(() => Math.max(1, pages.value.length))
-/** 多于一页时才显示翻页工具条 */
-const showPager = computed(() => pages.value.length > 1)
+/** 存在实际内容时即常驻显示悬浮工具条（单页也显示）；纯空占位页不显示 */
+const showPager = computed(() => layouts.value.some((p) => p.items.length > 0))
 
 /** 证件 Tab 且已有图片时才显示四点矫正编辑器 */
 const hasIdContent = computed(() => files.id.some((s) => s.page !== null))
@@ -189,6 +246,27 @@ watch(
 
 onMounted(paintToDom)
 
+/* ---------------- 适应窗口：测量与尺寸监听 ---------------- */
+
+let resizeObs: ResizeObserver | null = null
+onMounted(() => {
+  measureFit()
+  if (containerRef.value && typeof ResizeObserver !== 'undefined') {
+    resizeObs = new ResizeObserver(() => measureFit())
+    resizeObs.observe(containerRef.value)
+  }
+  window.addEventListener('resize', measureFit)
+})
+onUnmounted(() => {
+  resizeObs?.disconnect()
+  window.removeEventListener('resize', measureFit)
+})
+// 纸张方向变化后，基准宽高互换，需要重新测量
+watch(
+  () => ui.orientation,
+  () => nextTick(measureFit)
+)
+
 /* ---------------- 翻页 ---------------- */
 
 function goTo(n: number) {
@@ -261,9 +339,30 @@ watch(activeIdSlotPage, (i) => {
 /* ---------------- 键盘翻页 ---------------- */
 
 function onKeyDown(e: KeyboardEvent) {
-  if (viewMode.value !== 'page' || !showPager.value) return
+  // 缩放快捷键（任意预览方式下都可用，输入框聚焦时不拦截）
   const ae = document.activeElement as HTMLElement | null
-  if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA' || ae.isContentEditable)) return
+  const typing =
+    ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA' || ae.isContentEditable)
+  if ((e.ctrlKey || e.metaKey) && !typing) {
+    if (e.key === '=' || e.key === '+') {
+      e.preventDefault()
+      zoomIn()
+      return
+    }
+    if (e.key === '-') {
+      e.preventDefault()
+      zoomOut()
+      return
+    }
+    if (e.key === '0') {
+      e.preventDefault()
+      zoomFit()
+      return
+    }
+  }
+
+  if (viewMode.value !== 'page' || !showPager.value) return
+  if (typing) return
   if (e.key === 'PageDown') {
     e.preventDefault()
     goTo(currentPage.value + 1)
@@ -306,7 +405,7 @@ function setCanvasRef(idx: number, el: any) {
 </script>
 
 <template>
-  <div class="preview-container" id="print-area">
+  <div class="preview-container" id="print-area" ref="containerRef">
     <div class="pages-stack" :class="{ 'with-editor': showEditor }">
       <div
         v-for="(page, idx) in pages"
@@ -327,12 +426,13 @@ function setCanvasRef(idx: number, el: any) {
           :page="page"
           :page-index="idx"
           :active-slot="activeIdSlot"
+          :zoom="effectivePercent / 100"
           @update:active-slot="activeIdSlot = $event"
         />
       </div>
     </div>
 
-    <!-- 翻页工具条 -->
+    <!-- 悬浮工具条：有文件即常驻（单页也显示） -->
     <div class="pager no-print" v-if="showPager">
       <div class="pager-pill">
         <button class="pager-icon" :disabled="currentPage <= 1" title="首页" @click="goTo(1)">
@@ -377,6 +477,7 @@ function setCanvasRef(idx: number, el: any) {
         <button
           class="view-item"
           :class="{ active: viewMode === 'page' }"
+          title="单页翻页"
           @click="viewMode = 'page'"
         >
           单页
@@ -384,9 +485,39 @@ function setCanvasRef(idx: number, el: any) {
         <button
           class="view-item"
           :class="{ active: viewMode === 'scroll' }"
+          title="连续滚动"
           @click="viewMode = 'scroll'"
         >
           连续
+        </button>
+
+        <span class="pager-sep"></span>
+        <!-- 缩放控件 -->
+        <button class="pager-icon" title="缩小 (Ctrl -)" :disabled="effectivePercent <= ZOOM_MIN"
+                @click="zoomOut">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.4" stroke-linecap="round" aria-hidden="true">
+            <path d="M5 12h14" />
+          </svg>
+        </button>
+        <button
+          class="zoom-value"
+          :class="{ active: zoomMode === 'custom' }"
+          :title="zoomMode === 'fit' ? '当前适应窗口，点击切换为自定义' : '点击适应窗口 (Ctrl 0)'"
+          @click="zoomMode === 'fit' ? setCustomZoom(effectivePercent) : zoomFit()"
+        >
+          {{ effectivePercent }}%
+        </button>
+        <button class="pager-icon" title="放大 (Ctrl +)" :disabled="effectivePercent >= ZOOM_MAX"
+                @click="zoomIn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.4" stroke-linecap="round" aria-hidden="true">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+        </button>
+        <button class="zoom-fit" :class="{ active: zoomMode === 'fit' }" title="适应窗口 (Ctrl 0)"
+                @click="zoomFit">
+          适应
         </button>
       </div>
     </div>
@@ -400,6 +531,9 @@ function setCanvasRef(idx: number, el: any) {
   overflow: auto;
   padding: 24px;
   box-sizing: border-box;
+  /* 让工具条在内容不足一屏时也能被 margin:auto 推到底部 */
+  display: flex;
+  flex-direction: column;
   background: linear-gradient(160deg, #edeae2 0%, #e8e4db 55%, #dad4c8 100%);
 }
 
@@ -421,6 +555,8 @@ function setCanvasRef(idx: number, el: any) {
   flex-direction: column;
   align-items: center;
   gap: 32px;
+  /* 底部留出悬浮条空间，避免最后一页被遮挡 */
+  padding-bottom: 64px;
 }
 .pages-stack.with-editor {
   padding-top: 56px;
@@ -446,7 +582,7 @@ function setCanvasRef(idx: number, el: any) {
   background: #fff;
 }
 
-/* ---------- 翻页工具条 ---------- */
+/* ---------- 悬浮工具条 ---------- */
 .pager {
   position: sticky;
   bottom: 12px;
@@ -542,5 +678,86 @@ function setCanvasRef(idx: number, el: any) {
   background: var(--ink-blue-soft);
   color: var(--ink-blue);
   font-weight: 600;
+}
+
+/* ---------- 缩放控件 ---------- */
+.zoom-value {
+  min-width: 48px;
+  height: 24px;
+  padding: 0 6px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  font-family: var(--font-num);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-body);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.zoom-value:hover {
+  background: var(--paper-hover);
+}
+.zoom-value.active {
+  background: var(--ink-blue-soft);
+  color: var(--ink-blue);
+}
+.zoom-fit {
+  height: 24px;
+  padding: 0 8px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ink-secondary);
+  cursor: pointer;
+}
+.zoom-fit:hover {
+  color: var(--ink-strong);
+}
+.zoom-fit.active {
+  background: var(--ink-blue-soft);
+  color: var(--ink-blue);
+  font-weight: 600;
+}
+
+/* ---------- 响应式 ---------- */
+@media (max-width: 768px) {
+  .preview-container {
+    padding: 14px;
+  }
+  .pages-stack {
+    gap: 20px;
+    padding-bottom: 60px;
+  }
+  .pager-pill {
+    gap: 2px;
+    padding: 6px 10px;
+    max-width: calc(100vw - 24px);
+    overflow-x: auto;
+  }
+  .pager-jump {
+    font-size: 12px;
+  }
+  .pager-sep {
+    margin: 0 2px;
+  }
+}
+
+@media (max-width: 480px) {
+  .pager-pill {
+    gap: 1px;
+    padding: 5px 8px;
+  }
+  /* 极窄屏隐藏文字型视图切换，保留核心翻页与缩放 */
+  .view-item {
+    display: none;
+  }
+  .zoom-fit {
+    padding: 0 6px;
+  }
 }
 </style>
