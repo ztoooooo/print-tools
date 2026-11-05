@@ -6,7 +6,12 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
-    "preview": "vite preview"
+    "build:watch": "vite build --watch",
+    "preview": "vite preview",
+    "build:dbx": "vue-tsc --noEmit && vite build --mode dbx",
+    "build:dbx:watch": "vite build --mode dbx --watch",
+    "dbx:dev": "dbx-plugin dev --path . --port 5190",
+    "dbx:pack": "npm run build:dbx && dbx-plugin package . --target universal --output-dir release"
   },
   "dependencies": {
     "@techstark/opencv-js": "^5.0.0-release.1",

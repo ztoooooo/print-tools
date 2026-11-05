@@ -1,0 +1,27 @@
+name: Release DBX plugin
+
+# GitHub Release 发布（published）时自动构建未签名候选包，
+# 并合并生成 release-candidates.json 挂到该 Release。
+# 复用 DBX 官方 reusable workflow；纯前端 universal 包，无需 Rust/Go。
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    uses: t8y2/dbx/.github/workflows/plugin-release-reusable.yml@plugin-cli-v0.1.10
+    with:
+      release-tag: ${{ github.event.release.tag_name }}
+      # reusable workflow 不会自动构建：ui/ 是 gitignore 的产物，必须先 build:dbx 生成，
+      # 再 package 输出到 dist/（对齐下方 package-path / metadata-path）。
+      # DBX_PLUGIN_TARGET=universal 由 reusable workflow 按 build-matrix 注入。
+      package-command: npm run build:dbx && dbx-plugin package . --target universal --output-dir dist
+      package-path: dist/*.dbxp
+      metadata-path: dist/*.artifact.json
+      plugin-cli-version: 0.1.10
+      go-version: ""
+      rust-toolchain: ""
+      build-matrix: '{"include":[{"runner":"ubuntu-24.04","target":"universal"}]}'

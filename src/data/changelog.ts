@@ -18,6 +18,17 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.5.0',
+    date: '2026-11-05',
+    title: 'DBX 插件化',
+    changes: [
+      { kind: 'new', text: '同一套代码可构建为 DBX 纯前端插件（universal 包），在 DBX 工作台中直接使用。' },
+      { kind: 'new', text: '新增宿主适配层：DBX 沙箱内自动改用 Host 存储、原生保存对话框与剪贴板，Web 版行为完全不变。' },
+      { kind: 'improve', text: 'PDF 导出在 DBX 桌面端走系统原生保存对话框并分块落盘，兼容大文件。' },
+      { kind: 'improve', text: '打印在不支持 window.print 的沙箱中给出「改用另存 PDF」引导，不再静默失败。' }
+    ]
+  },
+  {
     version: '1.4.0',
     date: '2026-09-29',
     title: '预览交互升级',

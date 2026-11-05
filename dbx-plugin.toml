@@ -1,0 +1,14 @@
+# DBX 插件工程配置（dbx-plugin CLI 读取）
+# 文档：https://dbxio.com/cn/docs/plugin-development
+schema_version = 1
+
+[package]
+# 仅这些资源目录进入 .dbxp；manifest.json / dbx-plugin.toml 由 CLI 自动纳入，
+# dist/、node_modules/、.dbx-dev/ 等开发数据一律不进包
+include = ["assets", "ui"]
+
+[dev]
+# 独立开发宿主（dbx-plugin dev）调用的前端构建命令
+ui_build = ["npm", "run", "build:dbx"]
+# watch 模式由 scripts/dbx-watch.mjs 包装，每次成功构建后输出 DBX_UI_BUILD_SUCCESS
+ui_watch = ["node", "scripts/dbx-watch.mjs"]

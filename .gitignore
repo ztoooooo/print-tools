@@ -8,6 +8,15 @@ dist/
 dist-ssr/
 *.local
 
+# DBX 插件构建产物与开发数据（manifest.json / assets/ 仍纳入版本管理）
+ui/
+release/
+.dbx-dev/
+*.dbxp
+*.artifact.json
+# 私有仓库签名密钥（官方商店作者不需要，误生成时防止提交）
+.dbx-repository-signing-key.env
+
 # Vite 临时缓存
 vite.config.ts.timestamp-*.mjs
 

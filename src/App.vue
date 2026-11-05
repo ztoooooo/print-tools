@@ -8,6 +8,7 @@ import { useSettingsStore } from '@/stores/settings'
 import { downloadBlob, exportPdf } from '@/utils/pdf-export'
 import { layoutId, layoutInvoice, layoutTicket } from '@/utils/canvas-helpers'
 import { confirm, toast } from '@/utils/canvas-helpers'
+import { printDocument, printMaybeUnsupported } from '@/utils/host'
 import TopMenu from './components/TopMenu.vue'
 import TabBar from './components/TabBar.vue'
 import LeftPanel from './components/LeftPanel.vue'
@@ -53,7 +54,15 @@ async function handlePrint() {
   }
   // 打印份数
   for (let i = 0; i < ui.copies; i++) {
-    window.print()
+    const ok = printDocument()
+    if (!ok) {
+      toast('当前环境不支持直接打印，请改用「另存 PDF」后打印', 'warning')
+      break
+    }
+    // 沙箱环境 window.print 可能静默无响应，首份给出一次性引导
+    if (i === 0 && printMaybeUnsupported()) {
+      toast('若未弹出打印窗口，请改用「另存 PDF」后在系统中打印', 'info')
+    }
   }
 }
 
@@ -65,8 +74,12 @@ async function handleExportPdf() {
   try {
     const blob = await exportPdf(currentLayouts.value, ui.orientation, pdfWatermark.value)
     const filename = `print-${dayjs().format('YYYYMMDD-HHmmss')}.pdf`
-    downloadBlob(blob, filename)
-    toast(`已导出 ${filename}`, 'success')
+    const result = await downloadBlob(blob, filename)
+    if (result?.cancelled) {
+      toast('已取消保存', 'info')
+    } else {
+      toast(`已导出 ${filename}`, 'success')
+    }
   } catch (e: any) {
     toast(`导出失败：${e?.message || e}`, 'error')
   }

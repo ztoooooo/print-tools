@@ -65,14 +65,15 @@ export async function exportPdf(
   return new Blob([bytes as BlobPart], { type: 'application/pdf' })
 }
 
-/** 触发浏览器下载 */
-export function downloadBlob(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  setTimeout(() => URL.revokeObjectURL(url), 1000)
+/**
+ * 触发文件保存。
+ * 保留旧函数名以兼容既有调用；实际能力走宿主适配层：
+ * DBX 桌面端走原生保存对话框（fileTransfer），Web 走浏览器下载。
+ */
+export async function downloadBlob(
+  blob: Blob,
+  filename: string
+): Promise<{ saved: boolean; cancelled: boolean }> {
+  const { saveBlob } = await import('@/utils/host')
+  return saveBlob(blob, filename)
 }

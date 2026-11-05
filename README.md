@@ -113,12 +113,62 @@ npm run preview
 src/
 ├─ components/    # 界面组件（菜单、左面板、预览、弹窗、透视编辑器）
 ├─ stores/        # Pinia 状态（文件、布局、界面、设置、角点）
-├─ utils/         # 文件解析、画布绘制、PDF 导出、OpenCV 矫正
+├─ utils/
+│  ├─ host.ts     # 宿主适配层（Web 浏览器 / DBX 沙箱双模式）
+│  ├─ file-parser.ts  # 文件解析
+│  ├─ canvas-helpers.ts # 画布绘制、布局真源、持久化封装
+│  ├─ pdf-export.ts    # PDF 导出
+│  └─ perspective.ts   # OpenCV 矫正（懒加载）
 ├─ styles/        # 全局样式与打印规则
+├─ types/         # 类型（含 dbx.d.ts Host API 声明）
 ├─ types.ts       # 全局类型
 ├─ units.ts       # 常量与 mm/px 换算（唯一常量源）
-└─ main.ts        # 应用入口
+└─ main.ts        # 应用入口（挂载前先 initHost 预载宿主存储）
 ```
+
+---
+
+## 🧩 作为 DBX 插件运行
+
+本项目同时是一个 **DBX 纯前端插件（universal 包）**，同一份业务代码编译为两种产物：
+
+| 目标 | 命令 | 输出 | 存储 / 落盘方式 |
+| --- | --- | --- | --- |
+| Web 版 | `npm run build` | `dist/` | localStorage + 浏览器下载 |
+| DBX 插件 | `npm run build:dbx` | `ui/` | Host `storage` + `fileTransfer` 原生保存对话框 |
+
+双模式由 `src/utils/host.ts` 统一适配，业务组件与 store 不感知运行环境。
+
+### 沙箱适配要点
+
+DBX 插件 UI 运行在 opaque-origin 的隔离 iframe 中（`sandbox="allow-scripts"`），与普通浏览器有三点关键差异，已全部在适配层处理：
+
+1. **`localStorage` 直接抛错** → 启动时 `initHost()` 把 Host `storage` 预载到内存缓存，`storageGet/Set` 保持同步签名，store 层零改动；写操作异步穿透到 Host。
+2. **anchor 下载不可靠** → PDF 导出走 `fileTransfer.beginSave/write/finish` 原生保存对话框（分块写入），无该能力时回退浏览器下载。
+3. **`navigator.clipboard` 不可用** → 复制邮箱走 `dbxPlugin.copy`；`window.print()` 做了异常兜底与「改用 PDF」引导。
+
+### 插件工程文件
+
+- `manifest.json` —— 插件身份、`workbench` 贡献点、最小权限（仅 `host.storage`）、中英文本地化
+- `dbx-plugin.toml` —— CLI 打包范围与 dev 构建命令
+- `assets/plugin.svg` —— 插件图标（包根 `assets/`，与 `ui/` 平级）
+- `scripts/dbx-watch.mjs` —— watch 构建包装器，成功后输出 `DBX_UI_BUILD_SUCCESS` 触发热重载
+
+### 本地调试与打包
+
+```bash
+# 独立开发宿主（浏览器打开 http://127.0.0.1:5190，无需 DBX 桌面端）
+npm run dbx:dev
+
+# 打包未签名审核候选包 -> release/<id>-<version>-universal.dbxp
+npm run dbx:pack
+```
+
+> ⚠️ Windows 下 `dbx-plugin dev` 经 CMD.EXE 拉起构建命令，**项目路径含中文/空格会导致 cwd 解析失败**。请把仓库放在纯 ASCII 路径下调试；`package` 打包不受影响。
+>
+> 本地安装未签名包需在 DBX 插件中心开启「允许安装未签名开发包」。正式上架走 [t8y2/dbx-store](https://github.com/t8y2/dbx-store) 审核签名流程，开发者不持有商店私钥。
+
+参考文档：https://dbxio.com/cn/docs/plugin-development
 
 ---
 

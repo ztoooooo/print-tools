@@ -45,11 +45,16 @@ describe('静态审计：WYSIWYG 三位一体', () => {
     expect(src).toMatch(/@page/)
   })
 
-  it('App.vue 打印路径走 window.print()（不重新计算坐标）', async () => {
+  it('App.vue 打印路径走宿主适配层 printDocument（不重新计算坐标）', async () => {
     const src = await readSrc('App.vue')
-    expect(src).toMatch(/window\.print/)
+    expect(src).toMatch(/printDocument/)
+    // 不能再直接调 window.print(（DBX 沙箱需要统一适配；注释中的说明文字不算）
+    expect(src).not.toMatch(/window\.print\s*\(/)
     // 打印前应该先检查 currentLayouts（共用 layout 输出）
     expect(src).toMatch(/currentLayouts|layoutInvoice|layoutTicket|layoutId/)
+    // 真正的 window.print 收敛在适配层
+    const host = await readSrc('utils/host.ts')
+    expect(host).toMatch(/window\.print\(\)/)
   })
 })
 
@@ -163,6 +168,63 @@ describe('静态审计：localStorage 持久化范围', () => {
   it('perspective.ts 仅持久化角点', async () => {
     const src = await readSrc('stores/perspective.ts')
     expect(src).toMatch(/storageSet\(LS_KEYS\.perspective/)
+  })
+})
+
+describe('静态审计：DBX 插件宿主适配', () => {
+  it('host.ts 是唯一直接触达 window.dbxPlugin 的业务适配层', async () => {
+    const host = await readSrc('utils/host.ts')
+    expect(host).toMatch(/window\.dbxPlugin/)
+    expect(host).toMatch(/isDbxPlugin/)
+    expect(host).toMatch(/fileTransfer/)
+    // main.ts 启动必须先 await initHost（预载 Host storage 后才能建 store）
+    const main = await readSrc('main.ts')
+    expect(main).toMatch(/await\s+initHost\(\)/)
+  })
+
+  it('业务代码不直接使用 localStorage / navigator.clipboard（统一走适配层）', async () => {
+    const files = [
+      'stores/ui.ts',
+      'stores/layout.ts',
+      'stores/settings.ts',
+      'stores/perspective.ts',
+      'components/AboutPage.vue',
+      'App.vue'
+    ]
+    for (const f of files) {
+      const src = await readSrc(f)
+      // 只拦截真实 API 调用，注释中出现的 "localStorage" 说明文字不算
+      expect(src).not.toMatch(/localStorage\s*[.(]/)
+      expect(src).not.toMatch(/navigator\.clipboard\s*\./)
+    }
+  })
+
+  it('pdf-export 保存动作收敛到宿主适配层（沙箱 anchor 下载不可靠）', async () => {
+    const src = await readSrc('utils/pdf-export.ts')
+    expect(src).toMatch(/saveBlob/)
+    expect(src).not.toMatch(/a\.click\(\)/)
+  })
+
+  it('vite 提供 dbx mode 输出到 ui/ 且构建 base 为相对路径', async () => {
+    const vite = await readSrc('../vite.config.ts')
+    expect(vite).toMatch(/mode === 'dbx'/)
+    expect(vite).toMatch(/outDir/)
+    expect(vite).toMatch(/base:\s*command === 'build' \? '\.\/'/)
+  })
+
+  it('manifest.json 声明 workbench 贡献点与最小权限 host.storage', async () => {
+    const manifest = await fs.readFile(
+      path.resolve(SRC_ROOT, '..', 'manifest.json'),
+      'utf-8'
+    )
+    const m = JSON.parse(manifest)
+    expect(m.manifest_version).toBe(1)
+    expect(m.engines.host_api).toBeTruthy()
+    expect(m.permissions).toContain('host.storage')
+    expect(m.entrypoints.ui.entry).toBe('ui/index.html')
+    const wb = m.contributions.find((c: any) => c.type === 'workbench')
+    expect(wb).toBeTruthy()
+    expect(wb.id).toBe(m.contributions[0].id)
   })
 })
 

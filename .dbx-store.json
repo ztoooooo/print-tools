@@ -1,0 +1,21 @@
+{
+  "name": "票据打印",
+  "description": "纯前端本地票据打印工作台：发票 / 车票 / 证件排版、透视矫正、水印与 PDF 导出，文件不出本机。",
+  "icon": "assets/plugin.svg",
+  "tags": ["print", "pdf", "productivity", "image"],
+  "permissions": ["host.storage"],
+  "source": "https://github.com/ztoooooo/print-tools",
+  "homepage": "https://ztoooooo.github.io/print-tools/",
+  "license": "MIT",
+  "releaseNotes": "首个 DBX 插件版本：发票/车票/证件三工作区排版、OpenCV 透视矫正、自定义水印、PDF 导出，全程本地处理、零上传。",
+  "localizations": {
+    "zh-CN": {
+      "name": "票据打印",
+      "description": "纯前端本地票据打印工作台：发票 / 车票 / 证件排版、透视矫正、水印与 PDF 导出，文件不出本机。"
+    },
+    "en": {
+      "name": "Local Print Tools",
+      "description": "Local-only WYSIWYG workbench for laying out invoices, tickets and ID cards on A4, with perspective correction, watermark and PDF export. Nothing leaves the machine."
+    }
+  }
+}

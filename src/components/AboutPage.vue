@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useUiStore } from '@/stores/ui'
 import { toast } from '@/utils/canvas-helpers'
+import { copyText } from '@/utils/host'
 import { CHANGELOG } from '@/data/changelog'
 import type { ChangeKind } from '@/data/changelog'
 
@@ -25,12 +26,9 @@ const visible = computed({
 })
 
 async function copyEmail() {
-  try {
-    await navigator.clipboard.writeText(email)
-    toast('邮箱已复制', 'success')
-  } catch {
-    toast('复制失败，请手动选择', 'warning')
-  }
+  const ok = await copyText(email)
+  if (ok) toast('邮箱已复制', 'success')
+  else toast('复制失败，请手动选择', 'warning')
 }
 </script>
 

@@ -12,9 +12,13 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 /**
  * 构建产物用相对路径前缀，保证在任意部署位置都能正确解析资源：
  * 根路径（反代分享链接）、子路径（GitHub Pages 的 /print-tools/）都通用。
+ * DBX 插件沙箱同样要求相对地址（宿主注入 <base>，绝对 /assets 路径会 404）。
  * 本地 dev 仍用根路径。
+ *
+ * mode=dbx 时产物输出到 ui/（DBX 插件包的 entrypoints.ui.root），
+ * 普通构建输出到 dist/（Web 版）。
  */
-export default defineConfig(({ command }) => ({
+export default defineConfig(({ command, mode }) => ({
   base: command === 'build' ? './' : '/',
   plugins: [
     vue(),
@@ -44,6 +48,9 @@ export default defineConfig(({ command }) => ({
   },
   build: {
     target: 'esnext',
+    // DBX 插件模式输出到插件包 ui/ 目录；Web 版保持 dist/
+    outDir: mode === 'dbx' ? 'ui' : 'dist',
+    emptyOutDir: true,
     rollupOptions: {
       output: {
         manualChunks: {

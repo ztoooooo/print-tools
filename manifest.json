@@ -1,0 +1,36 @@
+{
+  "$schema": "https://raw.githubusercontent.com/t8y2/dbx/main/plugins/manifest.schema.json",
+  "manifest_version": 1,
+  "id": "io.github.ztoooooo.print-tools",
+  "name": "Local Print Tools",
+  "version": "1.5.0",
+  "publisher": "ztoooooo",
+  "description": "纯前端本地票据打印工作台：发票 / 车票 / 证件排版、透视矫正、水印与 PDF 导出，文件不出本机。",
+  "icon": "assets/plugin.svg",
+  "source": "https://github.com/ztoooooo/print-tools",
+  "homepage": "https://github.com/ztoooooo/print-tools",
+  "engines": { "host_api": "1" },
+  "permissions": ["host.storage"],
+  "entrypoints": {
+    "ui": { "root": "ui", "entry": "ui/index.html" }
+  },
+  "contributions": [
+    {
+      "type": "workbench",
+      "id": "io.github.ztoooooo.print-tools.main",
+      "label": "票据打印",
+      "icon": "assets/plugin.svg"
+    }
+  ],
+  "localizations": {
+    "zh-CN": {
+      "name": "票据打印",
+      "description": "纯前端本地票据打印工作台：发票 / 车票 / 证件排版、透视矫正、水印与 PDF 导出，文件不出本机。",
+      "contributions": {
+        "io.github.ztoooooo.print-tools.main": {
+          "label": "票据打印"
+        }
+      }
+    }
+  }
+}

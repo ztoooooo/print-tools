@@ -1,24 +1,15 @@
-// 画布绘制、水印、灰度、localStorage 封装、Toast 封装
+// 画布绘制、水印、灰度、持久化封装、Toast 封装
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { hostStorageGet, hostStorageSet } from '@/utils/host'
 
-// ============ localStorage 封装（仅 string/number/boolean/array/object） ============
+// ============ 持久化封装（Web: localStorage / DBX 沙箱: Host storage，签名保持同步） ============
 
 export function storageGet<T>(key: string, fallback: T): T {
-  try {
-    const raw = localStorage.getItem(key)
-    if (raw == null) return fallback
-    return JSON.parse(raw) as T
-  } catch {
-    return fallback
-  }
+  return hostStorageGet(key, fallback)
 }
 
 export function storageSet(key: string, value: unknown): void {
-  try {
-    localStorage.setItem(key, JSON.stringify(value))
-  } catch {
-    // 配额溢出等场景静默忽略
-  }
+  hostStorageSet(key, value)
 }
 
 // ============ Toast 封装（保持组件层与 ElementPlus 解耦） ============
