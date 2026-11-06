@@ -257,11 +257,6 @@ export function printDocument(): boolean {
   }
 }
 
-/** DBX 环境下打印可能无响应，用于 UI 给出一次性引导提示 */
-export function printMaybeUnsupported(): boolean {
-  return isDbxPlugin()
-}
-
 /** 防御性：确保初始化流程已结束（测试与特殊挂载顺序下使用） */
 export function hostReady(): boolean {
   return ready

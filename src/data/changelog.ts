@@ -18,6 +18,17 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '1.5.1',
+    date: '2026-11-06',
+    title: 'DBX 打印修复',
+    changes: [
+      { kind: 'fix', text: 'DBX 插件内点击「打印」直接走「另存 PDF」（原生保存对话框），不再调用被沙箱静默忽略的 window.print。' },
+      { kind: 'fix', text: '支持 Ctrl + 鼠标滚轮缩放预览，同时拦截浏览器整页缩放。' },
+      { kind: 'new', text: '新增底部工具栏快捷键：Ctrl+P 打印、Ctrl+S 另存 PDF，按钮悬停显示快捷键提示。' },
+      { kind: 'improve', text: '「关于」弹窗优先展示功能介绍与安全隐私，更新日志移至联系方式上方，功能介绍中补充全部快捷键。' }
+    ]
+  },
+  {
     version: '1.5.0',
     date: '2026-11-05',
     title: 'DBX 插件化',

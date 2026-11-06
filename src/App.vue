@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, onUnmounted } from 'vue'
 import dayjs from 'dayjs'
 import { useFilesStore } from '@/stores/files'
 import { useLayoutStore } from '@/stores/layout'
@@ -8,7 +8,7 @@ import { useSettingsStore } from '@/stores/settings'
 import { downloadBlob, exportPdf } from '@/utils/pdf-export'
 import { layoutId, layoutInvoice, layoutTicket } from '@/utils/canvas-helpers'
 import { confirm, toast } from '@/utils/canvas-helpers'
-import { printDocument, printMaybeUnsupported } from '@/utils/host'
+import { printDocument, isDbxPlugin } from '@/utils/host'
 import TopMenu from './components/TopMenu.vue'
 import TabBar from './components/TabBar.vue'
 import LeftPanel from './components/LeftPanel.vue'
@@ -52,16 +52,20 @@ async function handlePrint() {
     await confirm('请先添加文件', '提示')
     return
   }
-  // 打印份数
+  // DBX 插件沙箱：iframe 仅 allow-scripts（无 allow-modals），Chromium 会静默忽略
+  // 原生打印调用，且 Host API 没有打印能力 → 直接走「另存 PDF」（原生保存对话框可用），
+  // 保存后从系统打开 PDF 打印。
+  if (isDbxPlugin()) {
+    toast('插件沙箱不支持弹出打印窗口，已改为「另存 PDF」，保存后在系统中打印', 'info')
+    await handleExportPdf()
+    return
+  }
+  // 打印份数（Web 浏览器环境）
   for (let i = 0; i < ui.copies; i++) {
     const ok = printDocument()
     if (!ok) {
       toast('当前环境不支持直接打印，请改用「另存 PDF」后打印', 'warning')
       break
-    }
-    // 沙箱环境 window.print 可能静默无响应，首份给出一次性引导
-    if (i === 0 && printMaybeUnsupported()) {
-      toast('若未弹出打印窗口，请改用「另存 PDF」后在系统中打印', 'info')
     }
   }
 }
@@ -84,6 +88,28 @@ async function handleExportPdf() {
     toast(`导出失败：${e?.message || e}`, 'error')
   }
 }
+
+/* ---------------- 底部工具栏快捷键 ---------------- */
+
+/** Ctrl/Cmd+P 打印、Ctrl/Cmd+S 另存 PDF（拦截浏览器默认行为；输入框聚焦时不触发） */
+function onGlobalKeyDown(e: KeyboardEvent) {
+  if (e.repeat) return
+  if (!(e.ctrlKey || e.metaKey)) return
+  const ae = document.activeElement as HTMLElement | null
+  const typing =
+    ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA' || ae.isContentEditable)
+  if (typing) return
+  if (e.key === 'p' || e.key === 'P') {
+    e.preventDefault()
+    handlePrint()
+  } else if (e.key === 's' || e.key === 'S') {
+    e.preventDefault()
+    handleExportPdf()
+  }
+}
+
+onMounted(() => window.addEventListener('keydown', onGlobalKeyDown))
+onUnmounted(() => window.removeEventListener('keydown', onGlobalKeyDown))
 </script>
 
 <template>
@@ -95,8 +121,15 @@ async function handleExportPdf() {
       <PreviewCanvas />
     </main>
     <footer class="app-footer no-print">
-      <el-button class="lp-btn-seal" :disabled="!hasFiles" @click="handlePrint">打印</el-button>
-      <el-button class="lp-btn-outline-blue" :disabled="!hasFiles" @click="handleExportPdf">
+      <el-button class="lp-btn-seal" :disabled="!hasFiles" title="打印 (Ctrl+P)" @click="handlePrint">
+        打印
+      </el-button>
+      <el-button
+        class="lp-btn-outline-blue"
+        :disabled="!hasFiles"
+        title="另存 PDF (Ctrl+S)"
+        @click="handleExportPdf"
+      >
         另存 PDF
       </el-button>
       <div class="status-info tabular">

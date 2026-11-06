@@ -50,6 +50,31 @@ async function copyEmail() {
       </section>
 
       <section class="card">
+        <h3>功能介绍</h3>
+        <ul class="feat-list">
+          <li><b>发票 / 车票 / 证件</b>三个独立工作区，文件互不干扰。</li>
+          <li>支持 <b>PDF、JPG、PNG</b>；PDF 自动逐页拆分为独立页面。</li>
+          <li>多种排版模式：单张居中、双打、合并、网格、自动堆叠与分页。</li>
+          <li>证件支持四角<b>透视矫正</b>（基于 OpenCV，本地完成）。</li>
+          <li>文件可<b>拖拽排序</b>，预览、打印、导出顺序实时同步。</li>
+          <li>所见即所得：<b>预览 = 打印 = 导出 PDF</b>，同一套布局渲染。</li>
+          <li>支持纸张方向、彩色 / 黑白、打印份数、自定义水印等设置。</li>
+          <li>快捷键：<b>Ctrl+滚轮</b>缩放、<b>Ctrl+P</b> 打印、<b>Ctrl+S</b> 另存 PDF、<b>Ctrl + / - / 0</b> 缩放、<b>PgUp / PgDn</b> 翻页。</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h3>安全与隐私</h3>
+        <ul class="safe-list">
+          <li><span class="dot ok"></span><b>零后端、零上传</b>：所有文件只存在于你的浏览器内存中，不会发送到任何服务器。</li>
+          <li><span class="dot ok"></span><b>断网可用</b>：首次打开加载后，即使拔掉网线也能正常处理与打印。</li>
+          <li><span class="dot ok"></span><b>无账号、无追踪、无统计</b>：不收集任何个人信息。</li>
+          <li><span class="dot ok"></span>所有图像处理（旋转、灰度、水印、透视矫正）均在本机完成。</li>
+          <li><span class="dot warn"></span>刷新或关闭页面后文件会清空，请及时打印或导出 PDF 保存。</li>
+        </ul>
+      </section>
+
+      <section class="card">
         <h3>更新日志</h3>
         <div class="log">
           <div v-for="entry in CHANGELOG" :key="entry.version" class="log-entry">
@@ -68,30 +93,6 @@ async function copyEmail() {
             </ul>
           </div>
         </div>
-      </section>
-
-      <section class="card">
-        <h3>功能介绍</h3>
-        <ul class="feat-list">
-          <li><b>发票 / 车票 / 证件</b>三个独立工作区，文件互不干扰。</li>
-          <li>支持 <b>PDF、JPG、PNG</b>；PDF 自动逐页拆分为独立页面。</li>
-          <li>多种排版模式：单张居中、双打、合并、网格、自动堆叠与分页。</li>
-          <li>证件支持四角<b>透视矫正</b>（基于 OpenCV，本地完成）。</li>
-          <li>文件可<b>拖拽排序</b>，预览、打印、导出顺序实时同步。</li>
-          <li>所见即所得：<b>预览 = 打印 = 导出 PDF</b>，同一套布局渲染。</li>
-          <li>支持纸张方向、彩色 / 黑白、打印份数、自定义水印等设置。</li>
-        </ul>
-      </section>
-
-      <section class="card">
-        <h3>安全与隐私</h3>
-        <ul class="safe-list">
-          <li><span class="dot ok"></span><b>零后端、零上传</b>：所有文件只存在于你的浏览器内存中，不会发送到任何服务器。</li>
-          <li><span class="dot ok"></span><b>断网可用</b>：首次打开加载后，即使拔掉网线也能正常处理与打印。</li>
-          <li><span class="dot ok"></span><b>无账号、无追踪、无统计</b>：不收集任何个人信息。</li>
-          <li><span class="dot ok"></span>所有图像处理（旋转、灰度、水印、透视矫正）均在本机完成。</li>
-          <li><span class="dot warn"></span>刷新或关闭页面后文件会清空，请及时打印或导出 PDF 保存。</li>
-        </ul>
       </section>
 
       <section class="card">

@@ -3,7 +3,7 @@
   "manifest_version": 1,
   "id": "io.github.ztoooooo.print-tools",
   "name": "Local Print Tools",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "publisher": "ztoooooo",
   "description": "纯前端本地票据打印工作台：发票 / 车票 / 证件排版、透视矫正、水印与 PDF 导出，文件不出本机。",
   "icon": "assets/plugin.svg",

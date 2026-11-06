@@ -34,6 +34,8 @@ const settings = useSettingsStore()
 const pages = ref<HTMLCanvasElement[]>([])
 /** 模板中每个 canvas 的 DOM 引用 */
 const canvasRefs = ref<Record<number, HTMLCanvasElement>>({})
+/** 每页外层 wrapper 的 DOM 引用（连续滚动模式下按页定位） */
+const pageWrapRefs = ref<Record<number, HTMLElement>>({})
 /** 预览滚动容器（用于「适应」模式测量可用空间） */
 const containerRef = ref<HTMLElement | null>(null)
 
@@ -42,7 +44,6 @@ type ViewMode = 'page' | 'scroll'
 const viewMode = ref<ViewMode>(
   storageGet<string>(LS_KEYS.previewMode, 'page') === 'scroll' ? 'scroll' : 'page'
 )
-watch(viewMode, (v) => storageSet(LS_KEYS.previewMode, v))
 
 /** 当前页码（1 起） */
 const currentPage = ref(1)
@@ -301,10 +302,57 @@ function syncEditorToPage(n: number) {
   if (first !== undefined && first !== activeIdSlot.value) activeIdSlot.value = first
 }
 
-// 页码变化时同步输入框，并让证件编辑器跟随当前页
-watch(currentPage, (n) => {
+// 页码变化时同步输入框、证件编辑器跟随，并在连续滚动模式下把该页滚入视野
+let scrollToPageTimer: ReturnType<typeof setTimeout> | null = null
+/** 程序触发的平滑滚动进行中：忽略容器 scroll 事件，避免「滚动→改页码→再滚动」回环 */
+let scrollingToPage = false
+watch(currentPage, async (n) => {
   pageInput.value = String(n)
   syncEditorToPage(n)
+  if (viewMode.value !== 'scroll') return
+  await nextTick()
+  const wrap = pageWrapRefs.value[n - 1]
+  if (!wrap) return
+  scrollingToPage = true
+  wrap.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  if (scrollToPageTimer) clearTimeout(scrollToPageTimer)
+  scrollToPageTimer = setTimeout(() => {
+    scrollingToPage = false
+  }, 800)
+})
+
+// 连续滚动模式下，用户手动滚动时把当前页码同步为视口中央所在页
+function onContainerScroll() {
+  if (viewMode.value !== 'scroll' || scrollingToPage) return
+  const el = containerRef.value
+  if (!el) return
+  const midY = el.getBoundingClientRect().top + el.clientHeight / 2
+  let best = 0
+  for (let i = 0; i < pages.value.length; i++) {
+    const wrap = pageWrapRefs.value[i]
+    if (!wrap) continue
+    const r = wrap.getBoundingClientRect()
+    if (r.top <= midY && r.bottom >= midY) {
+      best = i
+      break
+    }
+  }
+  if (best + 1 !== currentPage.value) currentPage.value = best + 1
+}
+
+// 切到连续滚动模式时，立即定位到当前页（不平滑，避免切换瞬间的长距离滚动动画）
+watch(viewMode, (v) => {
+  storageSet(LS_KEYS.previewMode, v)
+  if (v === 'scroll') {
+    nextTick(() => {
+      scrollingToPage = true
+      pageWrapRefs.value[currentPage.value - 1]?.scrollIntoView({ block: 'start' })
+      if (scrollToPageTimer) clearTimeout(scrollToPageTimer)
+      scrollToPageTimer = setTimeout(() => {
+        scrollingToPage = false
+      }, 800)
+    })
+  }
 })
 
 // 切 Tab 回到第 1 页，并重置证件编辑槽位
@@ -375,6 +423,24 @@ function onKeyDown(e: KeyboardEvent) {
 onMounted(() => window.addEventListener('keydown', onKeyDown))
 onUnmounted(() => window.removeEventListener('keydown', onKeyDown))
 
+/* ---------------- Ctrl + 鼠标滚轮缩放 ---------------- */
+
+// Chrome 对 document/window 级 wheel 默认 passive，必须以 { passive: false }
+// 绑定在容器元素上，preventDefault 才能拦住浏览器整页缩放
+function onWheel(e: WheelEvent) {
+  if (!(e.ctrlKey || e.metaKey)) return
+  e.preventDefault()
+  if (e.deltaY < 0) zoomIn()
+  else if (e.deltaY > 0) zoomOut()
+}
+
+onMounted(() => {
+  containerRef.value?.addEventListener('wheel', onWheel, { passive: false })
+})
+onUnmounted(() => {
+  containerRef.value?.removeEventListener('wheel', onWheel)
+})
+
 /* ---------------- 打印页面尺寸（跟随纸张方向） ---------------- */
 
 // @page 无法用 class 动态切换，这里注入一条随方向变化的规则覆盖静态默认值
@@ -402,10 +468,48 @@ function setCanvasRef(idx: number, el: any) {
     delete canvasRefs.value[idx]
   }
 }
+
+function setWrapRef(idx: number, el: any) {
+  if (el) pageWrapRefs.value[idx] = el as HTMLElement
+  else delete pageWrapRefs.value[idx]
+}
+
+/* ---------------- 页序号标识（与左侧文件列表序号一致） ---------------- */
+
+/**
+ * 每页左上角的书签序号：发票/车票取排版项的源文件序号（1 基），
+ * 证件取槽位序号；一页多个文件时压缩连续段（1·2·3 → 1-3），去重（双打同一文件两份只显示一次）。
+ */
+function tagLabel(lp: LayoutPage): string {
+  const nums = new Set<number>()
+  for (const it of lp.items) {
+    if (ui.activeTab === 'id') {
+      if (it.slot !== undefined) nums.add(it.slot + 1)
+    } else {
+      nums.add(it.pageIndex + 1)
+    }
+  }
+  if (nums.size === 0) return ''
+  const s = [...nums].sort((a, b) => a - b)
+  const parts: string[] = []
+  let start = s[0]
+  let prev = s[0]
+  for (let i = 1; i < s.length; i++) {
+    if (s[i] === prev + 1) {
+      prev = s[i]
+      continue
+    }
+    parts.push(start === prev ? String(start) : `${start}-${prev}`)
+    start = s[i]
+    prev = s[i]
+  }
+  parts.push(start === prev ? String(start) : `${start}-${prev}`)
+  return parts.join('·')
+}
 </script>
 
 <template>
-  <div class="preview-container" id="print-area" ref="containerRef">
+  <div class="preview-container" id="print-area" ref="containerRef" @scroll="onContainerScroll">
     <div class="pages-stack" :class="{ 'with-editor': showEditor }">
       <div
         v-for="(page, idx) in pages"
@@ -413,7 +517,12 @@ function setCanvasRef(idx: number, el: any) {
         class="page-wrapper"
         :class="[ui.orientation, { 'page-off': !isPageVisible(idx) }]"
         :style="{ width: displayDims.w + 'px', height: displayDims.h + 'px' }"
+        :ref="(el) => setWrapRef(idx, el)"
       >
+        <!-- 页序号书签：对应左侧文件列表序号，仅预览显示 -->
+        <span v-if="layouts[idx] && tagLabel(layouts[idx])" class="page-tag no-print" aria-hidden="true">
+          {{ tagLabel(layouts[idx]) }}
+        </span>
         <canvas
           :ref="(el) => setCanvasRef(idx, el)"
           :width="dims.w"
@@ -582,10 +691,33 @@ function setCanvasRef(idx: number, el: any) {
   background: #fff;
 }
 
+/* ---------- 页序号书签（骑缝在纸张左上角，不进打印） ---------- */
+.page-tag {
+  position: absolute;
+  left: -10px;
+  top: 12px;
+  z-index: 6;
+  padding: 4px 8px;
+  background: var(--brand-seal);
+  color: #fff;
+  font-family: var(--font-num);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  border-radius: 6px 2px 2px 6px;
+  box-shadow: 0 2px 6px -1px rgba(60, 52, 38, 0.35);
+  pointer-events: none;
+}
+
 /* ---------- 悬浮工具条 ---------- */
 .pager {
   position: sticky;
   bottom: 12px;
+  /* 吸收剩余空间：内容不足一屏时工具条也钉在容器底部，不跟着纸张上移 */
+  margin-top: auto;
   z-index: 20;
   display: flex;
   justify-content: center;
